@@ -1,22 +1,16 @@
-import { Aggregate } from "../aggregate";
-import { IEvent } from "../event";
+import { Aggregate } from "./core/aggregate";
+import { IEvent } from "./core/event";
 import { OrderPlaced } from "./features/place-order/order-placed-event";
-import { PlaceOrderCommand } from "./features/place-order/place-order-command";
 
 export class Order extends Aggregate {
-    private orderId: string;
-
-    constructor(orderId: string) {
-        super();
-        this.placeOrder(orderId);
-    }
-
-    private placeOrder = (orderId: string) => {
-        this.raiseEvent(new OrderPlaced(orderId));
+    public static place = (orderId: string) => {
+        const order = new Order();
+        order.raiseEvent(new OrderPlaced(orderId));
+        return order;
     };
 
     private applyOrderPlaced = (event: OrderPlaced) => {
-        this.orderId = event.orderId;
+        this._aggregateId = event.aggregateId;
     };
 
     protected apply(event: IEvent) {
