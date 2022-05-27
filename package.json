@@ -5,10 +5,7 @@
     "orders-event-sourcing-sample": "bin/orders-event-sourcing-sample.js"
   },
   "scripts": {
-    "build": "tsc",
-    "watch": "tsc -w",
-    "test": "jest",
-    "cdk": "cdk"
+    "build": "tsc -p tsconfig.json --noEmit"
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.97",
