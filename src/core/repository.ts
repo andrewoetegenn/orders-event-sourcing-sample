@@ -26,19 +26,25 @@ export class Repository<T extends Aggregate> implements IRepository<T> {
     }
 
     public save = async (aggregate: T) => {
-        console.debug(`Saving events: ${aggregate.getAggregateId()}`);
+        const historicalEvents = await this.getEventsById(aggregate.getAggregateId());
+        const pendingEvents = aggregate.getPendingEvents();
 
-        const events = aggregate.getPendingEvents();
+        let currentVersion = historicalEvents ? historicalEvents.length - 1 : -1;
 
-        console.debug(`Found events: ${events.length}`);
-
-        for (const event of events) {
+        for (const event of pendingEvents) {
             const params: PutCommandInput = {
                 TableName: this.tableName,
-                Item: { _id: event.aggregateId, ...event },
+                Item: {
+                    id: event.aggregateId,
+                    version: currentVersion + 1,
+                    timestamp: new Date().getTime(),
+                    event: JSON.stringify(event),
+                },
             };
 
             await client.send(new PutCommand(params));
+
+            currentVersion++;
         }
 
         aggregate.markPendingEventsAsCommitted();
@@ -54,9 +60,9 @@ export class Repository<T extends Aggregate> implements IRepository<T> {
     private getEventsById = async (aggregateId: string) => {
         const params: QueryCommandInput = {
             TableName: this.tableName,
-            KeyConditionExpression: "_id = :_id",
+            KeyConditionExpression: "id = :id",
             ExpressionAttributeValues: {
-                ":_id": aggregateId,
+                ":id": aggregateId,
             },
             ConsistentRead: true,
         };

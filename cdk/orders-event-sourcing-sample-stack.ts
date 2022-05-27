@@ -1,5 +1,6 @@
-import { aws_dynamodb, RemovalPolicy, Stack, StackProps } from "aws-cdk-lib";
+import { RemovalPolicy, Stack, StackProps } from "aws-cdk-lib";
 import { LambdaIntegration, RestApi } from "aws-cdk-lib/aws-apigateway";
+import { AttributeType, Table } from "aws-cdk-lib/aws-dynamodb";
 import { Runtime, Tracing } from "aws-cdk-lib/aws-lambda";
 import { NodejsFunction } from "aws-cdk-lib/aws-lambda-nodejs";
 import { Construct } from "constructs";
@@ -9,11 +10,15 @@ export class OrdersEventSourcingSampleStack extends Stack {
     constructor(scope: Construct, id: string, props?: StackProps) {
         super(scope, id, props);
 
-        const ordersTable = new aws_dynamodb.Table(this, "OrdersTable", {
+        const ordersTable = new Table(this, "OrdersTable", {
             tableName: "Orders",
             partitionKey: {
-                name: "_id",
-                type: aws_dynamodb.AttributeType.STRING,
+                name: "id",
+                type: AttributeType.STRING,
+            },
+            sortKey: {
+                name: "version",
+                type: AttributeType.NUMBER,
             },
             removalPolicy: RemovalPolicy.DESTROY,
         });

@@ -4,8 +4,6 @@ import { ordersRepository } from "../../orders-repository";
 import { PlaceOrderCommand } from "./place-order-command";
 
 export const handler: APIGatewayProxyHandlerV2 = async (event) => {
-    console.debug(`Request: ${JSON.stringify(event)}`);
-
     if (!event.body) {
         return {
             statusCode: 400,
