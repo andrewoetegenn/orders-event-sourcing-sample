@@ -17,6 +17,7 @@ export class Order extends Aggregate {
         switch (event.eventName) {
             case "OrderPlaced":
                 this.applyOrderPlaced(event);
+                break;
             default:
                 throw new Error(`No application found for event type ${event.eventName}.`);
         }
