@@ -7,7 +7,7 @@ export abstract class Aggregate {
     public getAggregateId = () => this._aggregateId;
 
     protected raiseEvent = (event: IEvent) => {
-        console.debug(`Event raised: ${typeof event}`);
+        console.debug(`Event raised: ${event.eventName}`);
         this._pendingEvents.push(event);
         this.apply(event);
     };

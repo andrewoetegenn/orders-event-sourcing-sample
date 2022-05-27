@@ -30,6 +30,8 @@ export class Repository<T extends Aggregate> implements IRepository<T> {
 
         const events = aggregate.getPendingEvents();
 
+        console.debug(`Found events: ${events.length}`);
+
         events.forEach(async (event) => {
             const params: PutCommandInput = {
                 TableName: this.tableName,
