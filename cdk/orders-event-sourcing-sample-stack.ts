@@ -1,4 +1,5 @@
 import { aws_dynamodb, RemovalPolicy, Stack, StackProps } from "aws-cdk-lib";
+import { LambdaIntegration, RestApi } from "aws-cdk-lib/aws-apigateway";
 import { Runtime, Tracing } from "aws-cdk-lib/aws-lambda";
 import { NodejsFunction } from "aws-cdk-lib/aws-lambda-nodejs";
 import { Construct } from "constructs";
@@ -23,6 +24,11 @@ export class OrdersEventSourcingSampleStack extends Stack {
             entry: path.join(__dirname, "../src/features/place-order/handler.ts"),
             tracing: Tracing.ACTIVE,
         });
+
+        const orderAspi = new RestApi(this, "OrdersApi");
+
+        const root = orderAspi.root.addResource("orders");
+        root.addMethod("POST", new LambdaIntegration(placeOrderHandler));
 
         ordersTable.grantReadWriteData(placeOrderHandler);
     }
