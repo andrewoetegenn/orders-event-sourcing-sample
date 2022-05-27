@@ -14,11 +14,11 @@ export class Order extends Aggregate {
     };
 
     protected apply(event: IEvent) {
-        switch (event.constructor) {
-            case OrderPlaced:
+        switch (event.eventName) {
+            case "OrderPlaced":
                 this.applyOrderPlaced(event);
             default:
-                throw new Error(`No application found for event type ${event.constructor}.`);
+                throw new Error(`No application found for event type ${event.eventName}.`);
         }
     }
 }
