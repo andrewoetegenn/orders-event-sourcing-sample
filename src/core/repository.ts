@@ -26,6 +26,8 @@ export class Repository<T extends Aggregate> implements IRepository<T> {
     }
 
     public save = async (aggregate: T) => {
+        console.debug(`Saving events: ${aggregate.getAggregateId()}`);
+
         const events = aggregate.getPendingEvents();
 
         events.forEach(async (event) => {
