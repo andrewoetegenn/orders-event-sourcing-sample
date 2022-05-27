@@ -14,8 +14,8 @@ export class Order extends Aggregate {
     };
 
     protected apply(event: IEvent) {
-        switch (typeof event) {
-            case typeof OrderPlaced:
+        switch (event.constructor) {
+            case OrderPlaced:
                 this.applyOrderPlaced(event as OrderPlaced);
             default:
                 throw new Error(`No application found for event type ${typeof event}.`);
