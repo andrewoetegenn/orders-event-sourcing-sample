@@ -25,11 +25,11 @@ export class OrdersEventSourcingSampleStack extends Stack {
             tracing: Tracing.ACTIVE,
         });
 
+        ordersTable.grantReadWriteData(placeOrderHandler);
+
         const ordersApi = new RestApi(this, "OrdersApi");
 
         const root = ordersApi.root.addResource("orders");
         root.addMethod("POST", new LambdaIntegration(placeOrderHandler));
-
-        ordersTable.grantReadWriteData(placeOrderHandler);
     }
 }

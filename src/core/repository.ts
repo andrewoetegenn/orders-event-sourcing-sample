@@ -32,14 +32,14 @@ export class Repository<T extends Aggregate> implements IRepository<T> {
 
         console.debug(`Found events: ${events.length}`);
 
-        events.forEach(async (event) => {
+        for (const event of events) {
             const params: PutCommandInput = {
                 TableName: this.tableName,
                 Item: { _id: event.aggregateId, ...event },
             };
 
             await client.send(new PutCommand(params));
-        });
+        }
 
         aggregate.markPendingEventsAsCommitted();
     };
