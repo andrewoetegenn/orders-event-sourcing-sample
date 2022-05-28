@@ -1,4 +1,4 @@
-import { IEvent } from "../../core/event";
+import { IEvent } from "../core/event";
 
 export class OrderPlaced implements IEvent {
     readonly aggregateId: string;

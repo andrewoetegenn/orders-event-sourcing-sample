@@ -1,6 +1,6 @@
-import { Aggregate } from "./core/aggregate";
-import { IEvent } from "./core/event";
-import { OrderPlaced } from "./features/place-order/order-placed-event";
+import { Aggregate } from "../core/aggregate";
+import { IEvent } from "../core/event";
+import { OrderPlaced } from "../events/order-placed-event";
 
 export class Order extends Aggregate {
     public static place = (orderId: string) => {

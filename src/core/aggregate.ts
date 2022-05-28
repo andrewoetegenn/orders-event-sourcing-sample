@@ -22,8 +22,8 @@ export abstract class Aggregate {
     };
 
     public rebuildFromHistoricalEvents = (events: IEvent[]) => {
-        events.forEach((event) => {
+        for (const event of events) {
             this.apply(event);
-        });
+        }
     };
 }
