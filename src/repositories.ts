@@ -1,23 +1,14 @@
-import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import {
-    DynamoDBDocumentClient,
-    PutCommand,
-    PutCommandInput,
-    QueryCommand,
-    QueryCommandInput,
-} from "@aws-sdk/lib-dynamodb";
-import { Aggregate } from "./aggregate";
-import { IEvent } from "./event";
+import { PutCommand, PutCommandInput, QueryCommand, QueryCommandInput } from "@aws-sdk/lib-dynamodb";
+import { Aggregate, Order } from "./domain";
+import { IEvent } from "./events";
+import { client as dynamodb } from "./services/dynamodb";
 
-export interface IRepository<T> {
+interface IRepository<T> {
     save(aggregate: T): Promise<void>;
     getById(aggregateId: string): Promise<T>;
 }
 
-const dynamo = new DynamoDBClient({});
-const client = DynamoDBDocumentClient.from(dynamo);
-
-export class Repository<T extends Aggregate> implements IRepository<T> {
+class Repository<T extends Aggregate> implements IRepository<T> {
     private tableName: string;
     private Type: new () => T;
 
@@ -35,14 +26,15 @@ export class Repository<T extends Aggregate> implements IRepository<T> {
             const params: PutCommandInput = {
                 TableName: this.tableName,
                 Item: {
-                    id: event.aggregateId,
+                    id: aggregate.getAggregateId(),
                     version: currentVersion + 1,
-                    timestamp: new Date().getTime(),
+                    name: event.constructor.name,
                     event: JSON.stringify(event),
+                    timestamp: new Date().getTime(),
                 },
             };
 
-            await client.send(new PutCommand(params));
+            await dynamodb.send(new PutCommand(params));
 
             currentVersion++;
         }
@@ -53,7 +45,7 @@ export class Repository<T extends Aggregate> implements IRepository<T> {
     public getById = async (aggregateId: string) => {
         const historicalEvents = await this.getEventsById(aggregateId);
         const aggregate = new this.Type() as T;
-        aggregate.rebuildFromHistoricalEvents(historicalEvents);
+        aggregate.buildFromHistoricalEvents(historicalEvents);
         return aggregate;
     };
 
@@ -67,7 +59,7 @@ export class Repository<T extends Aggregate> implements IRepository<T> {
             ConsistentRead: true,
         };
 
-        const data = await client.send(new QueryCommand(params));
+        const data = await dynamodb.send(new QueryCommand(params));
 
         if (data.Count === 0) {
             return [];
@@ -76,3 +68,5 @@ export class Repository<T extends Aggregate> implements IRepository<T> {
         return data.Items as IEvent[];
     };
 }
+
+export const ordersRepository = new Repository<Order>(process.env.TABLE_NAME ?? "");

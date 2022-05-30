@@ -5,7 +5,8 @@
     "orders-event-sourcing-sample": "bin/orders-event-sourcing-sample.js"
   },
   "scripts": {
-    "build": "tsc -p tsconfig.json --noEmit"
+    "build": "tsc -p tsconfig.json --noEmit",
+    "deploy": "cdk deploy --require-approval never"
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.97",

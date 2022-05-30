@@ -1,7 +1,8 @@
 import { RemovalPolicy, Stack, StackProps } from "aws-cdk-lib";
 import { LambdaIntegration, RestApi } from "aws-cdk-lib/aws-apigateway";
 import { AttributeType, StreamViewType, Table } from "aws-cdk-lib/aws-dynamodb";
-import { EventBus } from "aws-cdk-lib/aws-events";
+import { EventBus, Rule } from "aws-cdk-lib/aws-events";
+import { LambdaFunction } from "aws-cdk-lib/aws-events-targets";
 import { Runtime, StartingPosition, Tracing } from "aws-cdk-lib/aws-lambda";
 import { DynamoEventSource } from "aws-cdk-lib/aws-lambda-event-sources";
 import { NodejsFunction } from "aws-cdk-lib/aws-lambda-nodejs";
@@ -27,10 +28,14 @@ export class OrdersEventSourcingSampleStack extends Stack {
 
         const ordersEventBus = new EventBus(this, "OrdersEvents");
 
+        const ordersApi = new RestApi(this, "OrdersApi");
+        const root = ordersApi.root.addResource("orders");
+
+        // Place Order
         const placeOrderHandler = new NodejsFunction(this, "PlaceOrderHandler", {
             runtime: Runtime.NODEJS_14_X,
-            handler: "handler",
-            entry: path.join(__dirname, "../src/handlers/place-order-handler.ts"),
+            handler: "placeOrderHandler",
+            entry: path.join(__dirname, "../src/handlers.ts"),
             tracing: Tracing.ACTIVE,
             environment: {
                 TABLE_NAME: ordersTable.tableName,
@@ -39,15 +44,30 @@ export class OrdersEventSourcingSampleStack extends Stack {
 
         ordersTable.grantReadWriteData(placeOrderHandler);
 
-        const ordersApi = new RestApi(this, "OrdersApi");
-
-        const root = ordersApi.root.addResource("orders");
         root.addMethod("POST", new LambdaIntegration(placeOrderHandler));
 
+        // Order Placed
+        const orderPlacedHandler = new NodejsFunction(this, "OrderPlacedHandler", {
+            runtime: Runtime.NODEJS_14_X,
+            handler: "orderPlacedHandler",
+            entry: path.join(__dirname, "../src/handlers.ts"),
+            tracing: Tracing.ACTIVE,
+        });
+
+        new Rule(this, "OrderPlacedRule", {
+            eventBus: ordersEventBus,
+            eventPattern: {
+                source: ["Orders"],
+                detailType: ["OrderPlaced"],
+            },
+            targets: [new LambdaFunction(orderPlacedHandler)],
+        });
+
+        // Event Stream
         const eventStreamHandler = new NodejsFunction(this, "EventStreamHandler", {
             runtime: Runtime.NODEJS_14_X,
-            handler: "handler",
-            entry: path.join(__dirname, "../src/handlers/event-stream-handler.ts"),
+            handler: "eventStreamHandler",
+            entry: path.join(__dirname, "../src/handlers.ts"),
             tracing: Tracing.ACTIVE,
             environment: {
                 EVENT_BUS_NAME: ordersEventBus.eventBusName,
