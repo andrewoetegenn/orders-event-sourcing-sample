@@ -61,7 +61,7 @@ class Repository<T extends Aggregate> implements IRepository<T> {
 
         const data = await dynamodb.send(new QueryCommand(params));
 
-        if (data.Count === 0) {
+        if (!data.Items || data.Items.length === 0) {
             return [];
         }
 
@@ -69,4 +69,4 @@ class Repository<T extends Aggregate> implements IRepository<T> {
     };
 }
 
-export const ordersRepository = new Repository<Order>(process.env.TABLE_NAME ?? "");
+export const ordersRepository = new Repository<Order>(process.env.EVENT_STORE_NAME ?? "");

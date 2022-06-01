@@ -1,4 +1,4 @@
-import { IEvent, OrderPlaced } from "./events";
+import { IEvent } from "../events";
 
 export abstract class Aggregate {
     protected _aggregateId: string;
@@ -26,25 +26,4 @@ export abstract class Aggregate {
             this.apply(event);
         }
     };
-}
-
-export class Order extends Aggregate {
-    constructor(orderId: string) {
-        super();
-        this.raiseEvent(new OrderPlaced(orderId));
-    }
-
-    private applyOrderPlaced = (event: OrderPlaced) => {
-        this._aggregateId = event.orderId;
-    };
-
-    protected apply(event: IEvent) {
-        switch (event.constructor.name) {
-            case "OrderPlaced":
-                this.applyOrderPlaced(event as OrderPlaced);
-                break;
-            default:
-                throw new Error(`No application found for event type ${event.constructor.name}.`);
-        }
-    }
 }

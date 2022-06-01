@@ -13,7 +13,7 @@ export class OrdersEventSourcingSampleStack extends Stack {
     constructor(scope: Construct, id: string, props?: StackProps) {
         super(scope, id, props);
 
-        const ordersTable = new Table(this, "OrdersTable", {
+        const ordersEventStore = new Table(this, "OrdersEventStore", {
             partitionKey: {
                 name: "id",
                 type: AttributeType.STRING,
@@ -26,6 +26,14 @@ export class OrdersEventSourcingSampleStack extends Stack {
             stream: StreamViewType.NEW_IMAGE,
         });
 
+        const ordersQueryStore = new Table(this, "OrdersQueryStore", {
+            partitionKey: {
+                name: "orderId",
+                type: AttributeType.STRING,
+            },
+            removalPolicy: RemovalPolicy.DESTROY,
+        });
+
         const ordersEventBus = new EventBus(this, "OrdersEvents");
 
         const ordersApi = new RestApi(this, "OrdersApi");
@@ -35,14 +43,14 @@ export class OrdersEventSourcingSampleStack extends Stack {
         const placeOrderHandler = new NodejsFunction(this, "PlaceOrderHandler", {
             runtime: Runtime.NODEJS_14_X,
             handler: "placeOrderHandler",
-            entry: path.join(__dirname, "../src/handlers.ts"),
+            entry: path.join(__dirname, "../src/features/place-order/index.ts"),
             tracing: Tracing.ACTIVE,
             environment: {
-                TABLE_NAME: ordersTable.tableName,
+                EVENT_STORE_NAME: ordersEventStore.tableName,
             },
         });
 
-        ordersTable.grantReadWriteData(placeOrderHandler);
+        ordersEventStore.grantReadWriteData(placeOrderHandler);
 
         root.addMethod("POST", new LambdaIntegration(placeOrderHandler));
 
@@ -50,9 +58,14 @@ export class OrdersEventSourcingSampleStack extends Stack {
         const orderPlacedHandler = new NodejsFunction(this, "OrderPlacedHandler", {
             runtime: Runtime.NODEJS_14_X,
             handler: "orderPlacedHandler",
-            entry: path.join(__dirname, "../src/handlers.ts"),
+            entry: path.join(__dirname, "../src/features/place-order/index.ts"),
             tracing: Tracing.ACTIVE,
+            environment: {
+                QUERY_STORE_NAME: ordersQueryStore.tableName,
+            },
         });
+
+        ordersQueryStore.grantReadWriteData(orderPlacedHandler);
 
         new Rule(this, "OrderPlacedRule", {
             eventBus: ordersEventBus,
@@ -75,7 +88,7 @@ export class OrdersEventSourcingSampleStack extends Stack {
         });
 
         eventStreamHandler.addEventSource(
-            new DynamoEventSource(ordersTable, { startingPosition: StartingPosition.TRIM_HORIZON })
+            new DynamoEventSource(ordersEventStore, { startingPosition: StartingPosition.TRIM_HORIZON })
         );
 
         ordersEventBus.grantPutEventsTo(eventStreamHandler);
