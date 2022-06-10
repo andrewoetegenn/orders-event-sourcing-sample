@@ -91,6 +91,28 @@ export class OrdersEventSourcingSampleStack extends Stack {
 
         root.addResource("line-items").addMethod("POST", new LambdaIntegration(addLineItemHandler));
 
+        // Order Line Item Added
+        const orderLienItemAddedHandler = new NodejsFunction(this, "OrderLineItemAddedHandler", {
+            runtime: Runtime.NODEJS_14_X,
+            handler: "orderLineItemAddedHandler",
+            entry: path.join(__dirname, "../src/features/add-line-item/index.ts"),
+            tracing: Tracing.ACTIVE,
+            environment: {
+                QUERY_STORE_NAME: ordersQueryStore.tableName,
+            },
+        });
+
+        ordersQueryStore.grantReadWriteData(orderLienItemAddedHandler);
+
+        new Rule(this, "OrderLineItemAddedRule", {
+            eventBus: ordersEventBus,
+            eventPattern: {
+                source: ["Orders"],
+                detailType: ["OrderLineItemAdded"],
+            },
+            targets: [new LambdaFunction(orderLienItemAddedHandler)],
+        });
+
         // Event Stream
         const eventStreamHandler = new NodejsFunction(this, "EventStreamHandler", {
             runtime: Runtime.NODEJS_14_X,
