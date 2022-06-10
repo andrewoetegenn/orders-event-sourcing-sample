@@ -10,9 +10,7 @@ interface IRepository<T> {
 
 class Repository<T extends Aggregate> implements IRepository<T> {
     private tableName: string;
-    private Type: { new (): T };
-
-    constructor(tableName: string) {
+    constructor(tableName: string, private Type: new () => T) {
         this.tableName = tableName;
     }
 
@@ -69,4 +67,4 @@ class Repository<T extends Aggregate> implements IRepository<T> {
     };
 }
 
-export const ordersRepository = new Repository<Order>(process.env.EVENT_STORE_NAME ?? "");
+export const ordersRepository = new Repository<Order>(process.env.EVENT_STORE_NAME ?? "", Order as any);
