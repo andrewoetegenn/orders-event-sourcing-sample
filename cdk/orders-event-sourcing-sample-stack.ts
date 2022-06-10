@@ -89,7 +89,9 @@ export class OrdersEventSourcingSampleStack extends Stack {
 
         ordersEventStore.grantReadWriteData(addLineItemHandler);
 
-        root.addResource("line-items").addMethod("POST", new LambdaIntegration(addLineItemHandler));
+        root.addResource("{orderId}")
+            .addResource("line-items")
+            .addMethod("POST", new LambdaIntegration(addLineItemHandler));
 
         // Order Line Item Added
         const orderLienItemAddedHandler = new NodejsFunction(this, "OrderLineItemAddedHandler", {
