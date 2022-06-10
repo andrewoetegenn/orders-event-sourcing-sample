@@ -10,7 +10,7 @@ interface IRepository<T> {
 
 class Repository<T extends Aggregate> implements IRepository<T> {
     private tableName: string;
-    private Type: new () => T;
+    private Type: { new (): T };
 
     constructor(tableName: string) {
         this.tableName = tableName;

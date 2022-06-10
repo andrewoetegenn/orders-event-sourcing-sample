@@ -14,5 +14,7 @@ export const orderLineItemAddedHandler: EventBridgeHandler<"OrderLineItemAdded",
         unitPrice: event.detail.lineItem.unitPrice,
     } as OrderLineItem);
 
+    order.orderTotal = event.detail.orderTotal;
+
     await ordersQueryStore.save(order);
 };
