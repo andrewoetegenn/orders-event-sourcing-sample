@@ -8,9 +8,10 @@ export class Order extends Aggregate {
     private status: OrderStatus;
     private orderTotal: number;
 
-    constructor(lineItems: OrderLineItem[]) {
-        super();
-        this.placeOrder(lineItems);
+    public static place(lineItems: OrderLineItem[]) {
+        const order = new Order();
+        order.placeOrder(lineItems);
+        return order;
     }
 
     private placeOrder(lineItems: OrderLineItem[]) {
