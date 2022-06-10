@@ -4,6 +4,8 @@ export abstract class Aggregate {
     protected _aggregateId: string;
     private _pendingEvents: IEvent[] = [];
 
+    constructor() {}
+
     public getAggregateId = () => this._aggregateId;
 
     protected raiseEvent = (event: IEvent) => {
