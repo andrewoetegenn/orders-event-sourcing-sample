@@ -1,14 +1,14 @@
 import { OrderLineItem } from "../../domain";
 import { IEvent } from "../../events";
 
-export class OrderPlaced implements IEvent {
+export class OrderLineItemAdded implements IEvent {
     readonly id: string;
-    readonly lineItems: OrderLineItem[];
+    readonly lineItem: OrderLineItem;
     readonly orderTotal: number;
 
-    constructor(id: string, lineItems: OrderLineItem[], orderTotal: number) {
+    constructor(id: string, lineItem: OrderLineItem, orderTotal: number) {
         this.id = id;
-        this.lineItems = lineItems;
+        this.lineItem = lineItem;
         this.orderTotal = orderTotal;
     }
 }

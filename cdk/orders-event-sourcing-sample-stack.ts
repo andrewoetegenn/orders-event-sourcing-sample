@@ -76,6 +76,21 @@ export class OrdersEventSourcingSampleStack extends Stack {
             targets: [new LambdaFunction(orderPlacedHandler)],
         });
 
+        // Add Line Item
+        const addLineItemHandler = new NodejsFunction(this, "AddLineItemHandler", {
+            runtime: Runtime.NODEJS_14_X,
+            handler: "addLineItemHandler",
+            entry: path.join(__dirname, "../src/features/add-line-item/index.ts"),
+            tracing: Tracing.ACTIVE,
+            environment: {
+                EVENT_STORE_NAME: ordersEventStore.tableName,
+            },
+        });
+
+        ordersEventStore.grantReadWriteData(addLineItemHandler);
+
+        root.addResource("line-items").addMethod("POST", new LambdaIntegration(addLineItemHandler));
+
         // Event Stream
         const eventStreamHandler = new NodejsFunction(this, "EventStreamHandler", {
             runtime: Runtime.NODEJS_14_X,

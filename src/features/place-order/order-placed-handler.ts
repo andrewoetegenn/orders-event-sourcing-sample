@@ -10,6 +10,7 @@ export const orderPlacedHandler: EventBridgeHandler<"OrderPlaced", OrderPlaced, 
         lineItems: event.detail.lineItems.map((x) => {
             return { sku: x.sku, quantity: x.quantity, unitPrice: x.unitPrice } as OrderLineItem;
         }),
+        orderTotal: event.detail.orderTotal,
     };
 
     await ordersQueryStore.save(order);

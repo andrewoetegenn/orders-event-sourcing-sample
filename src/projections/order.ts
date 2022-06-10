@@ -2,6 +2,7 @@ export interface Order {
     orderId: string;
     orderStatus: OrderStatus;
     lineItems: OrderLineItem[];
+    orderTotal: number;
 }
 
 export interface OrderLineItem {
