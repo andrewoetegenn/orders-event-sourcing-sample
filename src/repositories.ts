@@ -11,7 +11,7 @@ interface IRepository<T> {
 class Repository<T extends Aggregate> implements IRepository<T> {
     private tableName: string;
 
-    constructor(tableName: string, private type: new () => T) {
+    constructor(tableName: string, private Type: new () => T) {
         this.tableName = tableName;
     }
 
@@ -43,7 +43,7 @@ class Repository<T extends Aggregate> implements IRepository<T> {
 
     public getById = async (aggregateId: string) => {
         const historicalEvents = await this.getEventsById(aggregateId);
-        const aggregate = new this.type();
+        const aggregate = new this.Type() as T;
         aggregate.buildFromHistoricalEvents(historicalEvents);
         return aggregate;
     };
@@ -68,4 +68,4 @@ class Repository<T extends Aggregate> implements IRepository<T> {
     };
 }
 
-export const ordersRepository = new Repository(process.env.EVENT_STORE_NAME ?? "", Order);
+export const ordersRepository = new Repository<Order>(process.env.EVENT_STORE_NAME ?? "", Order);

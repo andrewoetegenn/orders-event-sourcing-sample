@@ -11,7 +11,7 @@ export const placeOrderHandler: APIGatewayProxyHandlerV2 = async (event) => {
     }
 
     const command = JSON.parse(event.body) as PlaceOrderCommand;
-    const order = new Order(command.lineItems.map((x) => new OrderLineItem(x.sku, x.quantity, x.unitPrice)));
+    const order = Order.place(command.lineItems.map((x) => new OrderLineItem(x.sku, x.quantity, x.unitPrice)));
     await ordersRepository.save(order);
 
     return {
