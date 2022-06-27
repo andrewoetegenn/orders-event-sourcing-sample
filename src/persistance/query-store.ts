@@ -1,6 +1,6 @@
 import { PutCommand, PutCommandInput, QueryCommand, QueryCommandInput } from "@aws-sdk/lib-dynamodb";
-import { Order } from "./projections";
-import { client as dynamodb } from "./services/dynamodb";
+import { Order } from "../projections/order";
+import { client as dynamodb } from "../services/dynamodb";
 
 interface IQueryStore<T> {
     get(id: string): Promise<T>;
@@ -18,7 +18,7 @@ class QueryStore<T> implements IQueryStore<T> {
     public get = async (id: string): Promise<T> => {
         const params: QueryCommandInput = {
             TableName: this.tableName,
-            KeyConditionExpression: `orderId = :orderId`, // How do I make this generic??
+            KeyConditionExpression: `orderId = :orderId`, // TODO: How do I make this generic??
             ExpressionAttributeValues: {
                 ":orderId": id,
             },

@@ -1,7 +1,7 @@
 import { APIGatewayProxyHandlerV2 } from "aws-lambda";
-import { Order, OrderLineItem } from "../../domain";
-import { ordersRepository } from "../../repositories";
-import { PlaceOrderCommand } from ".";
+import { Order, OrderLineItem } from "../domain/order";
+import { ordersRepository } from "../persistance/repositories";
+import { PlaceOrderCommand } from "../commands/place-order-command";
 
 export const placeOrderHandler: APIGatewayProxyHandlerV2 = async (event) => {
     if (!event.body) {

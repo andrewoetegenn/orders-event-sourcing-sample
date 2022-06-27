@@ -1,21 +1,20 @@
 import { PutCommand, PutCommandInput, QueryCommand, QueryCommandInput } from "@aws-sdk/lib-dynamodb";
-import { Aggregate, Order } from "./domain";
-import { IEvent } from "./events";
-import { client as dynamodb } from "./services/dynamodb";
+import { Order } from "../domain/order";
+import { Aggregate } from "../domain/aggregate";
+import { IEvent } from "../events/event";
+import { client as dynamodb } from "../services/dynamodb";
 
 interface IRepository<T> {
     save(aggregate: T): Promise<void>;
     getById(aggregateId: string): Promise<T>;
 }
 
-class Repository<T extends Aggregate> implements IRepository<T> {
-    private tableName: string;
-
-    constructor(tableName: string, private Type: new () => T) {
+class OrdersRepository implements IRepository<Order> {
+    constructor(private tableName: string) {
         this.tableName = tableName;
     }
 
-    public save = async (aggregate: T) => {
+    public save = async (aggregate: Order) => {
         const historicalEvents = await this.getEventsById(aggregate.getAggregateId());
         const pendingEvents = aggregate.getPendingEvents();
 
@@ -43,7 +42,7 @@ class Repository<T extends Aggregate> implements IRepository<T> {
 
     public getById = async (aggregateId: string) => {
         const historicalEvents = await this.getEventsById(aggregateId);
-        const aggregate = new this.Type() as T;
+        const aggregate = new Order();
         aggregate.buildFromHistoricalEvents(historicalEvents);
         return aggregate;
     };
@@ -68,4 +67,4 @@ class Repository<T extends Aggregate> implements IRepository<T> {
     };
 }
 
-export const ordersRepository = new Repository<Order>(process.env.EVENT_STORE_NAME ?? "", Order);
+export const ordersRepository = new OrdersRepository(process.env.EVENT_STORE_NAME ?? "");

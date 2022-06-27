@@ -1,9 +1,9 @@
 import { APIGatewayProxyHandlerV2 } from "aws-lambda";
-import { OrderLineItem } from "../../domain";
-import { ordersRepository } from "../../repositories";
-import { AddLineItemCommand } from "./add-line-item-command";
+import { OrderLineItem } from "../domain/order";
+import { ordersRepository } from "../persistance/repositories";
+import { AddOrderLineItemCommand } from "../commands/add-order-line-item-command";
 
-export const addLineItemHandler: APIGatewayProxyHandlerV2 = async (event) => {
+export const addOrderLineItemHandler: APIGatewayProxyHandlerV2 = async (event) => {
     if (!event.pathParameters?.orderId || !event.body) {
         return {
             statusCode: 400,
@@ -11,7 +11,7 @@ export const addLineItemHandler: APIGatewayProxyHandlerV2 = async (event) => {
     }
 
     const orderId = event.pathParameters.orderId;
-    const command = JSON.parse(event.body) as AddLineItemCommand;
+    const command = JSON.parse(event.body) as AddOrderLineItemCommand;
 
     const order = await ordersRepository.getById(orderId);
     order.addLineItem(new OrderLineItem(command.sku, command.quantity, command.unitPrice));

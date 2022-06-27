@@ -1,11 +1,11 @@
 import { EventBridgeHandler } from "aws-lambda";
-import { OrderPlaced } from ".";
-import { Order, OrderLineItem, OrderStatus } from "../../projections";
-import { ordersQueryStore } from "../../query-store";
+import { OrderPlacedEvent } from "../events/order-placed-event";
+import { Order, OrderLineItem, OrderStatus } from "../projections/order";
+import { ordersQueryStore } from "../persistance/query-store";
 
-export const orderPlacedHandler: EventBridgeHandler<"OrderPlaced", OrderPlaced, void> = async (event) => {
+export const orderPlacedHandler: EventBridgeHandler<"OrderPlaced", OrderPlacedEvent, void> = async (event) => {
     const order: Order = {
-        orderId: event.detail.id,
+        orderId: event.detail.aggregateId,
         orderStatus: OrderStatus.Placed,
         lineItems: event.detail.lineItems.map((x) => {
             return { sku: x.sku, quantity: x.quantity, unitPrice: x.unitPrice } as OrderLineItem;

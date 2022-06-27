@@ -1,4 +1,4 @@
-import { IEvent } from "../events";
+import { IEvent } from "../events/event";
 
 export abstract class Aggregate {
     protected _aggregateId: string;

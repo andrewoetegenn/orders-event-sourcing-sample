@@ -1,5 +1,5 @@
-import { DynamoDBStreamHandler, EventBridgeHandler } from "aws-lambda";
-import { publishEvent } from "./services/event-bridge";
+import { DynamoDBStreamHandler } from "aws-lambda";
+import { publishEvent } from "../services/event-bridge";
 import { unmarshall } from "@aws-sdk/util-dynamodb";
 import { AttributeValue } from "@aws-sdk/client-dynamodb";
 
