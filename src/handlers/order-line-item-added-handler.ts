@@ -4,7 +4,7 @@ import { OrderLineItem } from "../projections/order";
 import { ordersQueryStore } from "../persistance/query-store";
 
 export const orderLineItemAddedHandler: EventBridgeHandler<
-    "OrderLineItemAdded",
+    "OrderLineItemAddedEvent",
     OrderLineItemAddedEvent,
     void
 > = async (event) => {

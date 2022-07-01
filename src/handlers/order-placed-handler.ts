@@ -3,7 +3,7 @@ import { OrderPlacedEvent } from "../events/order-placed-event";
 import { Order, OrderLineItem, OrderStatus } from "../projections/order";
 import { ordersQueryStore } from "../persistance/query-store";
 
-export const orderPlacedHandler: EventBridgeHandler<"OrderPlaced", OrderPlacedEvent, void> = async (event) => {
+export const orderPlacedHandler: EventBridgeHandler<"OrderPlacedEvent", OrderPlacedEvent, void> = async (event) => {
     const order: Order = {
         orderId: event.detail.aggregateId,
         orderStatus: OrderStatus.Placed,
