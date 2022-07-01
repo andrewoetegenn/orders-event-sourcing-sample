@@ -1,6 +1,6 @@
 import { PutCommand, PutCommandInput, QueryCommand, QueryCommandInput } from "@aws-sdk/lib-dynamodb";
 import { Order } from "../domain/order";
-import { Event } from "../events/event";
+import { IEvent } from "../events/event";
 import { client as dynamodb } from "../services/dynamodb";
 
 interface IRepository<T> {
@@ -25,7 +25,7 @@ class OrdersRepository implements IRepository<Order> {
                 Item: {
                     id: aggregate.getAggregateId(),
                     version: currentVersion + 1,
-                    name: event.constructor.name,
+                    type: event.type,
                     event: JSON.stringify(event),
                     timestamp: new Date().getTime(),
                 },
@@ -62,7 +62,7 @@ class OrdersRepository implements IRepository<Order> {
             return [];
         }
 
-        return data.Items as Event[];
+        return data.Items.map((item) => item.event) as IEvent[];
     }
 }
 

@@ -1,3 +1,4 @@
-export class Event {
-    constructor(public readonly aggregateId: string) {}
+export interface IEvent {
+    readonly aggregateId: string;
+    readonly type: string;
 }
