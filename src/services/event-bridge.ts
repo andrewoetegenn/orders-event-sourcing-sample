@@ -1,5 +1,5 @@
 import { EventBridgeClient, PutEventsCommand, PutEventsCommandInput } from "@aws-sdk/client-eventbridge";
-import { IEvent } from "../events/event";
+import { IEvent } from "../events/events";
 
 const client = new EventBridgeClient({});
 

@@ -1,6 +1,6 @@
 import { PutCommand, PutCommandInput, QueryCommand, QueryCommandInput } from "@aws-sdk/lib-dynamodb";
 import { Order } from "../domain/order";
-import { IEvent } from "../events/event";
+import { Event } from "../events/events";
 import { client as dynamodb } from "../services/dynamodb";
 
 interface IRepository<T> {
@@ -62,7 +62,7 @@ class OrdersRepository implements IRepository<Order> {
             return [];
         }
 
-        const events = data.Items.map((item) => item.event) as IEvent[];
+        const events = data.Items.map((item) => item.event) as Event[];
 
         console.info("Events ", events);
 

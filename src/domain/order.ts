@@ -2,7 +2,7 @@ import { Aggregate } from "./aggregate";
 import { v4 as uuid } from "uuid";
 import { OrderPlacedEvent } from "../events/order-placed-event";
 import { OrderLineItemAddedEvent } from "../events/order-line-item-added-event";
-import { IEvent } from "../events/event";
+import { Event } from "../events/events";
 
 export class Order extends Aggregate {
     private status: OrderStatus;
@@ -34,7 +34,7 @@ export class Order extends Aggregate {
         this.orderTotal = event.orderTotal;
     }
 
-    protected apply(event: IEvent): void {
+    protected apply(event: Event): void {
         console.info("Event ", event);
 
         switch (event.type) {

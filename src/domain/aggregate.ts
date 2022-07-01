@@ -1,19 +1,19 @@
-import { IEvent } from "../events/event";
+import { Event } from "../events/events";
 
 export abstract class Aggregate {
     protected _aggregateId: string;
-    private _pendingEvents: IEvent[] = [];
+    private _pendingEvents: Event[] = [];
 
     public getAggregateId = () => this._aggregateId;
 
-    protected raiseEvent(event: IEvent): void {
+    protected raiseEvent(event: Event): void {
         this._pendingEvents.push(event);
         this.apply(event);
     }
 
-    protected abstract apply(event: IEvent): void;
+    protected abstract apply(event: Event): void;
 
-    public getPendingEvents(): IEvent[] {
+    public getPendingEvents(): Event[] {
         return this._pendingEvents;
     }
 
@@ -21,7 +21,7 @@ export abstract class Aggregate {
         this._pendingEvents = [];
     }
 
-    public loadFromHistory(events: IEvent[]): void {
+    public loadFromHistory(events: Event[]): void {
         for (const event of events) {
             this.apply(event);
         }

@@ -1,5 +1,5 @@
 import { OrderLineItem } from "../domain/order";
-import { IEvent } from "./event";
+import { IEvent } from "./events";
 
 export class OrderLineItemAddedEvent implements IEvent {
     public readonly type: string;
