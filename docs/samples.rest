@@ -1,4 +1,4 @@
-@baseUrl = https://jz6cun70fb.execute-api.eu-west-1.amazonaws.com/prod
+@baseUrl = https://nch4uighg7.execute-api.eu-west-1.amazonaws.com/prod
 
 # @name placeOrder
 POST {{baseUrl}}/orders HTTP/1.1

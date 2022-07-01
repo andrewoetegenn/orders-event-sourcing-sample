@@ -25,7 +25,7 @@ class OrdersRepository implements IRepository<Order> {
                 Item: {
                     id: aggregate.getAggregateId(),
                     version: currentVersion + 1,
-                    type: event.type,
+                    type: event.constructor.name,
                     event: JSON.stringify(event),
                     timestamp: new Date().getTime(),
                 },

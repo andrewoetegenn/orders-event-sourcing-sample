@@ -36,8 +36,9 @@ export class Order extends Aggregate {
 
     protected apply(event: Event): void {
         console.info("Event ", event);
+        console.info("Event Type ", event.constructor.name);
 
-        switch (event.type) {
+        switch (event.constructor.name) {
             case "OrderPlaced":
                 this.applyOrderPlaced(event as OrderPlacedEvent);
                 break;
@@ -45,7 +46,7 @@ export class Order extends Aggregate {
                 this.applyOrderLineItemAdded(event as OrderLineItemAddedEvent);
                 break;
             default:
-                throw new Error(`No application found for event type ${event.type}.`);
+                throw new Error(`No application found for event type ${event.constructor.name}.`);
         }
     }
 }
