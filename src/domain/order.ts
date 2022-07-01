@@ -18,7 +18,7 @@ export class Order extends Aggregate {
         this.raiseEvent(new OrderPlacedEvent(uuid(), lineItems, orderTotal));
     }
 
-    private applyOrderPlaced(event: OrderPlacedEvent): void {
+    private applyOrderPlacedEvent(event: OrderPlacedEvent): void {
         this._aggregateId = event.aggregateId;
         this.orderTotal = event.orderTotal;
         this.status = OrderStatus.Placed;
@@ -29,7 +29,7 @@ export class Order extends Aggregate {
         this.raiseEvent(new OrderLineItemAddedEvent(this._aggregateId, lineItem, orderTotal));
     }
 
-    private applyOrderLineItemAdded(event: OrderLineItemAddedEvent): void {
+    private applyOrderLineItemAddedEvent(event: OrderLineItemAddedEvent): void {
         this.orderTotal = event.orderTotal;
     }
 }
