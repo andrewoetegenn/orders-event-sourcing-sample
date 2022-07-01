@@ -35,6 +35,8 @@ export class Order extends Aggregate {
     }
 
     protected apply(event: IEvent): void {
+        console.info("Event ", event);
+
         switch (event.type) {
             case "OrderPlaced":
                 this.applyOrderPlaced(event as OrderPlacedEvent);
