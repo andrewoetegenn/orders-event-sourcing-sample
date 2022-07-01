@@ -39,10 +39,10 @@ export class Order extends Aggregate {
         console.info("Event Type ", event.constructor.name);
 
         switch (event.constructor.name) {
-            case "OrderPlaced":
+            case "OrderPlacedEvent":
                 this.applyOrderPlaced(event as OrderPlacedEvent);
                 break;
-            case "OrderLineItemAdded":
+            case "OrderLineItemAddedEvent":
                 this.applyOrderLineItemAdded(event as OrderLineItemAddedEvent);
                 break;
             default:
