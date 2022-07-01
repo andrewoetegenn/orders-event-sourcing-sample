@@ -71,7 +71,7 @@ export class OrdersEventSourcingSampleStack extends Stack {
             eventBus: ordersEventBus,
             eventPattern: {
                 source: ["Orders"],
-                detailType: ["OrderPlaced"],
+                detailType: ["OrderPlacedEvent"],
             },
             targets: [new LambdaFunction(orderPlacedHandler)],
         });
@@ -110,7 +110,7 @@ export class OrdersEventSourcingSampleStack extends Stack {
             eventBus: ordersEventBus,
             eventPattern: {
                 source: ["Orders"],
-                detailType: ["OrderLineItemAdded"],
+                detailType: ["OrderLineItemAddedEvent"],
             },
             targets: [new LambdaFunction(orderLienItemAddedHandler)],
         });
