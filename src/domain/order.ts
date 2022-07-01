@@ -2,7 +2,7 @@ import { Aggregate } from "./aggregate";
 import { v4 as uuid } from "uuid";
 import { OrderPlacedEvent } from "../events/order-placed-event";
 import { OrderLineItemAddedEvent } from "../events/order-line-item-added-event";
-import { Event } from "../events/events";
+import { IEvent } from "../events/events";
 
 export class Order extends Aggregate {
     private status: OrderStatus;
@@ -34,11 +34,8 @@ export class Order extends Aggregate {
         this.orderTotal = event.orderTotal;
     }
 
-    protected apply(event: Event): void {
-        console.info("Event ", event);
-        console.info("Event Type ", event.constructor.name);
-
-        switch (event.constructor.name) {
+    protected apply(event: IEvent): void {
+        switch (event.type) {
             case "OrderPlacedEvent":
                 this.applyOrderPlaced(event as OrderPlacedEvent);
                 break;
@@ -46,7 +43,7 @@ export class Order extends Aggregate {
                 this.applyOrderLineItemAdded(event as OrderLineItemAddedEvent);
                 break;
             default:
-                throw new Error(`No application found for event type ${event.constructor.name}.`);
+                throw new Error(`No application found for event type ${event.type}.`);
         }
     }
 }

@@ -1,9 +1,9 @@
 import { EventBridgeClient, PutEventsCommand, PutEventsCommandInput } from "@aws-sdk/client-eventbridge";
-import { Event } from "../events/events";
+import { IEvent } from "../events/events";
 
 const client = new EventBridgeClient({});
 
-export const publishEvent = async <T extends Event>(detailType: string, detail: T) => {
+export const publishEvent = async <T extends IEvent>(detailType: string, detail: T) => {
     const params: PutEventsCommandInput = {
         Entries: [
             {
