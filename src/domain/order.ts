@@ -36,10 +36,10 @@ export class Order extends Aggregate {
 
     protected apply(event: IEvent): void {
         switch (event.type) {
-            case "OrderPlacedEvent":
+            case "OrderPlaced":
                 this.applyOrderPlaced(event as OrderPlacedEvent);
                 break;
-            case "OrderLineItemAddedEvent":
+            case "OrderLineItemAdded":
                 this.applyOrderLineItemAdded(event as OrderLineItemAddedEvent);
                 break;
             default:
