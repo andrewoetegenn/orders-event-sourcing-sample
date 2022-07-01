@@ -12,6 +12,8 @@ export abstract class Aggregate {
     }
 
     private apply(event: IEvent): void {
+        console.info("Event ", event);
+
         if (!this[`apply${event.type}`]) {
             throw new Error(`No application found for event type ${event.type}.`);
         }
