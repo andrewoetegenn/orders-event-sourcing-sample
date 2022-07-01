@@ -14,8 +14,8 @@ class OrdersRepository implements IRepository<Order> {
         this.tableName = tableName;
     }
 
-    public save = async (aggregate: Order) => {
-        const historicalEvents = await this.getEventsById(aggregate.getAggregateId());
+    public async save(aggregate: Order): Promise<void> {
+        const historicalEvents = await this.getEventsForAggregate(aggregate.getAggregateId());
         const pendingEvents = aggregate.getPendingEvents();
 
         let currentVersion = historicalEvents ? historicalEvents.length - 1 : -1;
@@ -38,16 +38,16 @@ class OrdersRepository implements IRepository<Order> {
         }
 
         aggregate.markPendingEventsAsCommitted();
-    };
+    }
 
-    public getById = async (aggregateId: string) => {
-        const historicalEvents = await this.getEventsById(aggregateId);
+    public async getById(aggregateId: string): Promise<Order> {
+        const historicalEvents = await this.getEventsForAggregate(aggregateId);
         const aggregate = new Order();
-        aggregate.buildFromHistoricalEvents(historicalEvents);
+        aggregate.loadFromHistory(historicalEvents);
         return aggregate;
-    };
+    }
 
-    private getEventsById = async (aggregateId: string) => {
+    private async getEventsForAggregate(aggregateId: string) {
         const params: QueryCommandInput = {
             TableName: this.tableName,
             KeyConditionExpression: "id = :id",
@@ -64,7 +64,7 @@ class OrdersRepository implements IRepository<Order> {
         }
 
         return data.Items as IEvent[];
-    };
+    }
 }
 
 export const ordersRepository = new OrdersRepository(process.env.EVENT_STORE_NAME ?? "");

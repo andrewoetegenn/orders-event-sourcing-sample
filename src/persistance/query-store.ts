@@ -15,7 +15,7 @@ class QueryStore<T> implements IQueryStore<T> {
         this.tableName = tableName;
     }
 
-    public get = async (id: string): Promise<T> => {
+    public async get(id: string): Promise<T> {
         const params: QueryCommandInput = {
             TableName: this.tableName,
             KeyConditionExpression: `orderId = :orderId`, // TODO: How do I make this generic??
@@ -32,16 +32,16 @@ class QueryStore<T> implements IQueryStore<T> {
         }
 
         return data.Items[0] as T;
-    };
+    }
 
-    public save = async (data: T): Promise<void> => {
+    public async save(data: T): Promise<void> {
         const params: PutCommandInput = {
             TableName: this.tableName,
             Item: data,
         };
 
         await dynamodb.send(new PutCommand(params));
-    };
+    }
 }
 
 export const ordersQueryStore = new QueryStore<Order>(process.env.QUERY_STORE_NAME ?? "");
