@@ -1,17 +1,17 @@
-import { IEvent } from "../events/event";
+import { Event } from "../events/event";
 
 export abstract class Aggregate {
     protected _aggregateId: string;
-    private _pendingEvents: IEvent[] = [];
+    private _pendingEvents: Event[] = [];
 
     public getAggregateId = () => this._aggregateId;
 
-    protected raiseEvent(event: IEvent): void {
+    protected raiseEvent(event: Event): void {
         this._pendingEvents.push(event);
         this.apply(event);
     }
 
-    private apply(event: IEvent): void {
+    private apply(event: Event): void {
         if (!this[`apply${event.constructor.name}`]) {
             throw new Error(`No application found for event type ${event.constructor.name}.`);
         }
@@ -19,7 +19,7 @@ export abstract class Aggregate {
         this[`apply${event.constructor.name}`](event);
     }
 
-    public getPendingEvents(): IEvent[] {
+    public getPendingEvents(): Event[] {
         return this._pendingEvents;
     }
 
@@ -27,7 +27,7 @@ export abstract class Aggregate {
         this._pendingEvents = [];
     }
 
-    public loadFromHistory(events: IEvent[]): void {
+    public loadFromHistory(events: Event[]): void {
         for (const event of events) {
             this.apply(event);
         }

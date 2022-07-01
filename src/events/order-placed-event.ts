@@ -1,14 +1,12 @@
 import { OrderLineItem } from "../domain/order";
-import { IEvent } from "../events/event";
+import { Event } from "../events/event";
 
-export class OrderPlacedEvent implements IEvent {
-    readonly aggregateId: string;
-    readonly lineItems: OrderLineItem[];
-    readonly orderTotal: number;
-
-    constructor(id: string, lineItems: OrderLineItem[], orderTotal: number) {
-        this.aggregateId = id;
-        this.lineItems = lineItems;
-        this.orderTotal = orderTotal;
+export class OrderPlacedEvent extends Event {
+    constructor(
+        public readonly aggregateId: string,
+        public readonly lineItems: OrderLineItem[],
+        public readonly orderTotal: number
+    ) {
+        super(aggregateId);
     }
 }

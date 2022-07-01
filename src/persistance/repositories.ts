@@ -1,7 +1,6 @@
 import { PutCommand, PutCommandInput, QueryCommand, QueryCommandInput } from "@aws-sdk/lib-dynamodb";
 import { Order } from "../domain/order";
-import { Aggregate } from "../domain/aggregate";
-import { IEvent } from "../events/event";
+import { Event } from "../events/event";
 import { client as dynamodb } from "../services/dynamodb";
 
 interface IRepository<T> {
@@ -63,7 +62,7 @@ class OrdersRepository implements IRepository<Order> {
             return [];
         }
 
-        return data.Items as IEvent[];
+        return data.Items as Event[];
     }
 }
 
