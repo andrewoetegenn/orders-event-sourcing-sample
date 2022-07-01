@@ -13,7 +13,7 @@ export class OrdersEventSourcingSampleStack extends Stack {
     constructor(scope: Construct, id: string, props?: StackProps) {
         super(scope, id, props);
 
-        const ordersEventStore = new Table(this, "OrdersEventStore", {
+        const eventStore = new Table(this, "OrdersEventStore", {
             partitionKey: {
                 name: "id",
                 type: AttributeType.STRING,
@@ -26,7 +26,7 @@ export class OrdersEventSourcingSampleStack extends Stack {
             stream: StreamViewType.NEW_IMAGE,
         });
 
-        const ordersQueryStore = new Table(this, "OrdersQueryStore", {
+        const queryStore = new Table(this, "OrdersQueryStore", {
             partitionKey: {
                 name: "orderId",
                 type: AttributeType.STRING,
@@ -34,10 +34,10 @@ export class OrdersEventSourcingSampleStack extends Stack {
             removalPolicy: RemovalPolicy.DESTROY,
         });
 
-        const ordersEventBus = new EventBus(this, "OrdersEvents");
+        const eventBus = new EventBus(this, "OrdersEvents");
 
-        const ordersApi = new RestApi(this, "OrdersApi");
-        const root = ordersApi.root.addResource("orders");
+        const api = new RestApi(this, "OrdersApi");
+        const apiRoot = api.root.addResource("orders");
 
         // Place Order
         const placeOrderHandler = new NodejsFunction(this, "PlaceOrderHandler", {
@@ -46,13 +46,13 @@ export class OrdersEventSourcingSampleStack extends Stack {
             entry: path.join(__dirname, "../src/handlers/place-order-handler.ts"),
             tracing: Tracing.ACTIVE,
             environment: {
-                EVENT_STORE_NAME: ordersEventStore.tableName,
+                EVENT_STORE_NAME: eventStore.tableName,
             },
         });
 
-        ordersEventStore.grantReadWriteData(placeOrderHandler);
+        eventStore.grantReadWriteData(placeOrderHandler);
 
-        root.addMethod("POST", new LambdaIntegration(placeOrderHandler));
+        apiRoot.addMethod("POST", new LambdaIntegration(placeOrderHandler));
 
         // Order Placed
         const orderPlacedHandler = new NodejsFunction(this, "OrderPlacedHandler", {
@@ -61,17 +61,17 @@ export class OrdersEventSourcingSampleStack extends Stack {
             entry: path.join(__dirname, "../src/handlers/order-placed-handler.ts"),
             tracing: Tracing.ACTIVE,
             environment: {
-                QUERY_STORE_NAME: ordersQueryStore.tableName,
+                QUERY_STORE_NAME: queryStore.tableName,
             },
         });
 
-        ordersQueryStore.grantReadWriteData(orderPlacedHandler);
+        queryStore.grantReadWriteData(orderPlacedHandler);
 
         new Rule(this, "OrderPlacedRule", {
-            eventBus: ordersEventBus,
+            eventBus: eventBus,
             eventPattern: {
                 source: ["Orders"],
-                detailType: ["OrderPlacedEvent"],
+                detailType: ["OrderPlaced"],
             },
             targets: [new LambdaFunction(orderPlacedHandler)],
         });
@@ -83,14 +83,15 @@ export class OrdersEventSourcingSampleStack extends Stack {
             entry: path.join(__dirname, "../src/handlers/add-order-line-item-handler.ts"),
             tracing: Tracing.ACTIVE,
             environment: {
-                EVENT_STORE_NAME: ordersEventStore.tableName,
+                EVENT_STORE_NAME: eventStore.tableName,
             },
         });
 
-        ordersEventStore.grantReadWriteData(addOrderLineItemHandler);
+        eventStore.grantReadWriteData(addOrderLineItemHandler);
 
-        root.addResource("{orderId}")
-            .addResource("line-items")
+        apiRoot
+            .addResource("{orderId}")
+            .addResource("items")
             .addMethod("POST", new LambdaIntegration(addOrderLineItemHandler));
 
         // Order Line Item Added
@@ -100,17 +101,17 @@ export class OrdersEventSourcingSampleStack extends Stack {
             entry: path.join(__dirname, "../src/handlers/order-line-item-added-handler.ts"),
             tracing: Tracing.ACTIVE,
             environment: {
-                QUERY_STORE_NAME: ordersQueryStore.tableName,
+                QUERY_STORE_NAME: queryStore.tableName,
             },
         });
 
-        ordersQueryStore.grantReadWriteData(orderLineItemAddedHandler);
+        queryStore.grantReadWriteData(orderLineItemAddedHandler);
 
         new Rule(this, "OrderLineItemAddedRule", {
-            eventBus: ordersEventBus,
+            eventBus: eventBus,
             eventPattern: {
                 source: ["Orders"],
-                detailType: ["OrderLineItemAddedEvent"],
+                detailType: ["OrderLineItemAdded"],
             },
             targets: [new LambdaFunction(orderLineItemAddedHandler)],
         });
@@ -122,14 +123,14 @@ export class OrdersEventSourcingSampleStack extends Stack {
             entry: path.join(__dirname, "../src/handlers/event-stream-handler.ts"),
             tracing: Tracing.ACTIVE,
             environment: {
-                EVENT_BUS_NAME: ordersEventBus.eventBusName,
+                EVENT_BUS_NAME: eventBus.eventBusName,
             },
         });
 
         eventStreamHandler.addEventSource(
-            new DynamoEventSource(ordersEventStore, { startingPosition: StartingPosition.TRIM_HORIZON })
+            new DynamoEventSource(eventStore, { startingPosition: StartingPosition.TRIM_HORIZON })
         );
 
-        ordersEventBus.grantPutEventsTo(eventStreamHandler);
+        eventBus.grantPutEventsTo(eventStreamHandler);
     }
 }
