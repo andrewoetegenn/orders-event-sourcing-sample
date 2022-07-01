@@ -62,7 +62,11 @@ class OrdersRepository implements IRepository<Order> {
             return [];
         }
 
-        return data.Items.map((item) => item.event) as IEvent[];
+        const events = data.Items.map((item) => item.event) as IEvent[];
+
+        console.info("Events: ", events);
+
+        return events;
     }
 }
 
