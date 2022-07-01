@@ -79,7 +79,7 @@ export class OrdersEventSourcingSampleStack extends Stack {
         // Add Order Line Item
         const addOrderLineItemHandler = new NodejsFunction(this, "AddOrderLineItemHandler", {
             runtime: Runtime.NODEJS_14_X,
-            handler: "addLineItemHandler",
+            handler: "addOrderLineItemHandler",
             entry: path.join(__dirname, "../src/handlers/add-order-line-item-handler.ts"),
             tracing: Tracing.ACTIVE,
             environment: {
@@ -94,7 +94,7 @@ export class OrdersEventSourcingSampleStack extends Stack {
             .addMethod("POST", new LambdaIntegration(addOrderLineItemHandler));
 
         // Order Line Item Added
-        const orderLienItemAddedHandler = new NodejsFunction(this, "OrderLineItemAddedHandler", {
+        const orderLineItemAddedHandler = new NodejsFunction(this, "OrderLineItemAddedHandler", {
             runtime: Runtime.NODEJS_14_X,
             handler: "orderLineItemAddedHandler",
             entry: path.join(__dirname, "../src/handlers/order-line-item-added-handler.ts"),
@@ -104,7 +104,7 @@ export class OrdersEventSourcingSampleStack extends Stack {
             },
         });
 
-        ordersQueryStore.grantReadWriteData(orderLienItemAddedHandler);
+        ordersQueryStore.grantReadWriteData(orderLineItemAddedHandler);
 
         new Rule(this, "OrderLineItemAddedRule", {
             eventBus: ordersEventBus,
@@ -112,7 +112,7 @@ export class OrdersEventSourcingSampleStack extends Stack {
                 source: ["Orders"],
                 detailType: ["OrderLineItemAddedEvent"],
             },
-            targets: [new LambdaFunction(orderLienItemAddedHandler)],
+            targets: [new LambdaFunction(orderLineItemAddedHandler)],
         });
 
         // Event Stream
