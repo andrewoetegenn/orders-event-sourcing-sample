@@ -1,0 +1,33 @@
+@baseUrl = https://jz6cun70fb.execute-api.eu-west-1.amazonaws.com/prod
+
+# @name placeOrder
+POST https://jz6cun70fb.execute-api.eu-west-1.amazonaws.com/prod/orders HTTP/1.1
+content-type: application/json
+
+{
+    "lineItems": [
+        {
+            "sku": "AAA-00001",
+            "quantity": 1,
+            "unitPrice": 4.99
+        },
+        {
+            "sku": "AAA-00002",
+            "quantity": 2,
+            "unitPrice": 12.49
+        }
+    ]
+}
+
+###
+
+@orderId = {{placeOrder.response.body.orderId}}
+
+POST https://jz6cun70fb.execute-api.eu-west-1.amazonaws.com/prod/orders/{{orderId}}/line-items HTTP/1.1
+content-type: application/json
+
+{
+    "sku": "AAA-00003",
+    "quantity": 3,
+    "unitPrice": 1.29
+}

@@ -20,7 +20,7 @@ export class Order extends Aggregate {
     }
 
     private applyOrderPlaced = (event: OrderPlacedEvent) => {
-        this._aggregateId = event.id;
+        this._aggregateId = event.aggregateId;
         this.orderTotal = event.orderTotal;
         this.status = OrderStatus.Placed;
     };
@@ -36,10 +36,10 @@ export class Order extends Aggregate {
 
     protected apply(event: IEvent) {
         switch (event.constructor.name) {
-            case "OrderPlaced":
+            case "OrderPlacedEvent":
                 this.applyOrderPlaced(event as OrderPlacedEvent);
                 break;
-            case "OrderLineItemAdded":
+            case "OrderLineItemAddedEvent":
                 this.applyOrderLineItemAdded(event as OrderLineItemAddedEvent);
                 break;
             default:

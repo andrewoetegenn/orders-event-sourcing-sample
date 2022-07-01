@@ -43,7 +43,7 @@ export class OrdersEventSourcingSampleStack extends Stack {
         const placeOrderHandler = new NodejsFunction(this, "PlaceOrderHandler", {
             runtime: Runtime.NODEJS_14_X,
             handler: "placeOrderHandler",
-            entry: path.join(__dirname, "../src/features/place-order/index.ts"),
+            entry: path.join(__dirname, "../src/handlers/place-order-handler.ts"),
             tracing: Tracing.ACTIVE,
             environment: {
                 EVENT_STORE_NAME: ordersEventStore.tableName,
@@ -58,7 +58,7 @@ export class OrdersEventSourcingSampleStack extends Stack {
         const orderPlacedHandler = new NodejsFunction(this, "OrderPlacedHandler", {
             runtime: Runtime.NODEJS_14_X,
             handler: "orderPlacedHandler",
-            entry: path.join(__dirname, "../src/features/place-order/index.ts"),
+            entry: path.join(__dirname, "../src/handlers/order-placed-handler.ts"),
             tracing: Tracing.ACTIVE,
             environment: {
                 QUERY_STORE_NAME: ordersQueryStore.tableName,
@@ -76,28 +76,28 @@ export class OrdersEventSourcingSampleStack extends Stack {
             targets: [new LambdaFunction(orderPlacedHandler)],
         });
 
-        // Add Line Item
-        const addLineItemHandler = new NodejsFunction(this, "AddLineItemHandler", {
+        // Add Order Line Item
+        const addOrderLineItemHandler = new NodejsFunction(this, "AddOrderLineItemHandler", {
             runtime: Runtime.NODEJS_14_X,
             handler: "addLineItemHandler",
-            entry: path.join(__dirname, "../src/features/add-line-item/index.ts"),
+            entry: path.join(__dirname, "../src/handlers/add-order-line-item-handler.ts"),
             tracing: Tracing.ACTIVE,
             environment: {
                 EVENT_STORE_NAME: ordersEventStore.tableName,
             },
         });
 
-        ordersEventStore.grantReadWriteData(addLineItemHandler);
+        ordersEventStore.grantReadWriteData(addOrderLineItemHandler);
 
         root.addResource("{orderId}")
             .addResource("line-items")
-            .addMethod("POST", new LambdaIntegration(addLineItemHandler));
+            .addMethod("POST", new LambdaIntegration(addOrderLineItemHandler));
 
         // Order Line Item Added
         const orderLienItemAddedHandler = new NodejsFunction(this, "OrderLineItemAddedHandler", {
             runtime: Runtime.NODEJS_14_X,
             handler: "orderLineItemAddedHandler",
-            entry: path.join(__dirname, "../src/features/add-line-item/index.ts"),
+            entry: path.join(__dirname, "../src/handlers/order-line-item-added-handler.ts"),
             tracing: Tracing.ACTIVE,
             environment: {
                 QUERY_STORE_NAME: ordersQueryStore.tableName,
@@ -119,7 +119,7 @@ export class OrdersEventSourcingSampleStack extends Stack {
         const eventStreamHandler = new NodejsFunction(this, "EventStreamHandler", {
             runtime: Runtime.NODEJS_14_X,
             handler: "eventStreamHandler",
-            entry: path.join(__dirname, "../src/handlers.ts"),
+            entry: path.join(__dirname, "../src/handlers/event-stream-handler.ts"),
             tracing: Tracing.ACTIVE,
             environment: {
                 EVENT_BUS_NAME: ordersEventBus.eventBusName,
