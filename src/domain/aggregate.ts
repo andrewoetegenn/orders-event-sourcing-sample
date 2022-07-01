@@ -11,15 +11,7 @@ export abstract class Aggregate {
         this.apply(event);
     }
 
-    private apply(event: IEvent): void {
-        console.info("Event ", event);
-
-        if (!this[`apply${event.type}`]) {
-            throw new Error(`No application found for event type ${event.type}.`);
-        }
-
-        this[`apply${event.type}`](event);
-    }
+    protected abstract apply(event: IEvent): void;
 
     public getPendingEvents(): IEvent[] {
         return this._pendingEvents;
