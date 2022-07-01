@@ -15,6 +15,6 @@ export const eventStreamHandler: DynamoDBStreamHandler = async (event) => {
             }
         );
 
-        await publishEvent(item.name, JSON.parse(item.event));
+        await publishEvent(item.type, JSON.parse(item.event));
     }
 };
