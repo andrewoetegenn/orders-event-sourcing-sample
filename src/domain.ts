@@ -1,4 +1,4 @@
-import { IEvent, OrderPlaced, LineItemAddedToOrder } from "./events";
+import { IEvent, OrderPlaced, LineItemAddedToOrder, OrderApproved } from "./events";
 import { v4 as uuid } from "uuid";
 
 abstract class Aggregate {
@@ -30,6 +30,8 @@ abstract class Aggregate {
 }
 
 export class Order extends Aggregate {
+    private orderStatus: OrderStatus;
+
     public static place(lineItems: OrderLineItem[]): Order {
         const order = new Order();
         order.placeOrder(lineItems);
@@ -42,6 +44,7 @@ export class Order extends Aggregate {
 
     private applyOrderPlaced(event: OrderPlaced): void {
         this.aggregateId = event.aggregateId;
+        this.orderStatus = OrderStatus.Placed;
     }
 
     public addLineItem(lineItem: OrderLineItem): void {
@@ -50,6 +53,18 @@ export class Order extends Aggregate {
 
     private applyLineItemAddedToOrder(event: LineItemAddedToOrder): void {}
 
+    public approve(): void {
+        if (this.orderStatus !== OrderStatus.Placed) {
+            throw new DomainError("InvalidOrderStatus", `Orders can only be approved when in status '${OrderStatus.Placed}'.`);
+        }
+
+        this.raiseEvent(new OrderApproved(this.aggregateId));
+    }
+
+    private applyOrderApproved(event: OrderApproved): void {
+        this.orderStatus = OrderStatus.Approved;
+    }
+
     protected apply(event: IEvent): void {
         switch (event.type) {
             case "OrderPlaced":
@@ -57,6 +72,9 @@ export class Order extends Aggregate {
                 break;
             case "LineItemAddedToOrder":
                 this.applyLineItemAddedToOrder(event as LineItemAddedToOrder);
+                break;
+            case "OrderApproved":
+                this.applyOrderApproved(event as OrderApproved);
                 break;
             default:
                 throw new Error(`No application found for event type ${event.type}.`);
@@ -78,4 +96,14 @@ export class OrderLineItem {
 
 export enum OrderStatus {
     Placed = "Placed",
+    Approved = "Approved",
 }
+
+export class DomainError extends Error {
+    constructor(name: DomainErrorName, message: string) {
+        super(message);
+        this.name = name;
+    }
+}
+
+export type DomainErrorName = "InvalidOrderStatus";

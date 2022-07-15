@@ -127,6 +127,43 @@ export class OrdersEventSourcingSampleStack extends Stack {
             targets: [new LambdaFunction(orderLineItemAddedHandler)],
         });
 
+        // Approve Order
+        const approveOrderHandler = new NodejsFunction(this, "ApproveOrderHandler", {
+            runtime: Runtime.NODEJS_14_X,
+            handler: "approveOrderHandler",
+            entry: path.join(__dirname, "../src/handlers/approve-order-handler.ts"),
+            tracing: Tracing.ACTIVE,
+            environment: {
+                EVENT_STORE_NAME: eventStore.tableName,
+            },
+        });
+
+        eventStore.grantReadWriteData(approveOrderHandler);
+
+        api.root.resourceForPath("/orders/{orderId}/approve").addMethod("POST", new LambdaIntegration(approveOrderHandler));
+
+        // Order Approved
+        const orderApprovedHandler = new NodejsFunction(this, "OrderApprovedHandler", {
+            runtime: Runtime.NODEJS_14_X,
+            handler: "orderApprovedHandler",
+            entry: path.join(__dirname, "../src/handlers/order-approved-handler.ts"),
+            tracing: Tracing.ACTIVE,
+            environment: {
+                QUERY_STORE_NAME: queryStore.tableName,
+            },
+        });
+
+        queryStore.grantReadWriteData(orderApprovedHandler);
+
+        new Rule(this, "OrderApprovedRule", {
+            eventBus: eventBus,
+            eventPattern: {
+                source: ["Orders"],
+                detailType: ["OrderApproved"],
+            },
+            targets: [new LambdaFunction(orderApprovedHandler)],
+        });
+
         // Event Stream
         const eventStreamHandler = new NodejsFunction(this, "EventStreamHandler", {
             runtime: Runtime.NODEJS_14_X,

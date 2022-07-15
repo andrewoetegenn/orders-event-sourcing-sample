@@ -15,6 +15,7 @@ export interface OrderLineItem {
 
 export enum OrderStatus {
     Placed = "Placed",
+    Approved = "Approved",
 }
 
 export const calculateOrderTotal = (lineItems: OrderLineItem[]): number => {

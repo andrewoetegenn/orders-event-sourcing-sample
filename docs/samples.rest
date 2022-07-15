@@ -38,3 +38,9 @@ content-type: application/json
 # @name getOrder
 GET {{baseUrl}}/orders/{{orderId}} HTTP/1.1
 content-type: application/json
+
+###
+
+# @name approveOrder
+POST {{baseUrl}}/orders/{{orderId}}/approve HTTP/1.1
+content-type: application/json
