@@ -1,4 +1,4 @@
-@baseUrl = https://nch4uighg7.execute-api.eu-west-1.amazonaws.com/prod
+@baseUrl = https://la4pkahg2l.execute-api.eu-west-1.amazonaws.com/prod
 
 # @name placeOrder
 POST {{baseUrl}}/orders HTTP/1.1
@@ -23,7 +23,7 @@ content-type: application/json
 
 @orderId = {{placeOrder.response.body.orderId}}
 
-# @name addOrderLineItem
+# @name addLineItemToOrder
 POST {{baseUrl}}/orders/{{orderId}}/items HTTP/1.1
 content-type: application/json
 

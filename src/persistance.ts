@@ -1,7 +1,8 @@
 import { PutCommand, PutCommandInput, QueryCommand, QueryCommandInput } from "@aws-sdk/lib-dynamodb";
-import { Order } from "../domain/order";
-import { IEvent } from "../events/events";
-import { client as dynamodb } from "../services/dynamodb";
+import { Order as OrderProjection } from "./projections";
+import { dynamoDBClient } from "./services";
+import { IEvent } from "./events";
+import { Order } from "./domain";
 
 interface IRepository<T> {
     save(aggregate: T): Promise<void>;
@@ -31,7 +32,7 @@ class OrdersRepository implements IRepository<Order> {
                 },
             };
 
-            await dynamodb.send(new PutCommand(params));
+            await dynamoDBClient.send(new PutCommand(params));
 
             currentVersion++;
         }
@@ -56,7 +57,7 @@ class OrdersRepository implements IRepository<Order> {
             ConsistentRead: true,
         };
 
-        const data = await dynamodb.send(new QueryCommand(params));
+        const data = await dynamoDBClient.send(new QueryCommand(params));
 
         if (!data.Items || data.Items.length === 0) {
             return [];
@@ -69,3 +70,47 @@ class OrdersRepository implements IRepository<Order> {
 }
 
 export const ordersRepository = new OrdersRepository(process.env.EVENT_STORE_NAME ?? "");
+
+interface IQueryStore<T> {
+    get(id: string): Promise<T>;
+    save(data: T): Promise<void>;
+}
+
+class QueryStore<T> implements IQueryStore<T> {
+    private tableName: string;
+    private Type: new () => T;
+
+    constructor(tableName: string) {
+        this.tableName = tableName;
+    }
+
+    public async get(id: string): Promise<T> {
+        const params: QueryCommandInput = {
+            TableName: this.tableName,
+            KeyConditionExpression: `orderId = :orderId`, // TODO: How do I make this generic??
+            ExpressionAttributeValues: {
+                ":orderId": id,
+            },
+            ConsistentRead: true,
+        };
+
+        const data = await dynamoDBClient.send(new QueryCommand(params));
+
+        if (!data.Items || data.Items.length === 0) {
+            return new this.Type() as T;
+        }
+
+        return data.Items[0] as T;
+    }
+
+    public async save(data: T): Promise<void> {
+        const params: PutCommandInput = {
+            TableName: this.tableName,
+            Item: data,
+        };
+
+        await dynamoDBClient.send(new PutCommand(params));
+    }
+}
+
+export const ordersQueryStore = new QueryStore<OrderProjection>(process.env.QUERY_STORE_NAME ?? "");
