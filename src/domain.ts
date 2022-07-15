@@ -2,24 +2,24 @@ import { IEvent, OrderPlaced, LineItemAddedToOrder } from "./events";
 import { v4 as uuid } from "uuid";
 
 abstract class Aggregate {
-    protected _aggregateId: string;
-    private _pendingEvents: IEvent[] = [];
+    protected aggregateId: string;
+    private pendingEvents: IEvent[] = [];
 
-    public getAggregateId = () => this._aggregateId;
+    public getAggregateId = () => this.aggregateId;
 
     protected raiseEvent(event: IEvent): void {
-        this._pendingEvents.push(event);
+        this.pendingEvents.push(event);
         this.apply(event);
     }
 
     protected abstract apply(event: IEvent): void;
 
     public getPendingEvents(): IEvent[] {
-        return this._pendingEvents;
+        return this.pendingEvents;
     }
 
     public markPendingEventsAsCommitted(): void {
-        this._pendingEvents = [];
+        this.pendingEvents = [];
     }
 
     public loadFromHistory(events: IEvent[]): void {
@@ -41,11 +41,11 @@ export class Order extends Aggregate {
     }
 
     private applyOrderPlaced(event: OrderPlaced): void {
-        this._aggregateId = event.aggregateId;
+        this.aggregateId = event.aggregateId;
     }
 
     public addLineItem(lineItem: OrderLineItem): void {
-        this.raiseEvent(new LineItemAddedToOrder(this._aggregateId, lineItem));
+        this.raiseEvent(new LineItemAddedToOrder(this.aggregateId, lineItem));
     }
 
     private applyLineItemAddedToOrder(event: LineItemAddedToOrder): void {}

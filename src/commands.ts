@@ -1,6 +1,4 @@
-export interface ICommand {}
-
-export interface PlaceOrder extends ICommand {
+export interface PlaceOrder {
     lineItems: [
         {
             sku: string;
@@ -10,7 +8,7 @@ export interface PlaceOrder extends ICommand {
     ];
 }
 
-export interface AddLineItemToOrder extends ICommand {
+export interface AddLineItemToOrder {
     sku: string;
     quantity: number;
     unitPrice: number;

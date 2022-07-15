@@ -1,3 +1,5 @@
+import { round } from "./utils";
+
 export interface Order {
     orderId: string;
     orderStatus: OrderStatus;
@@ -14,3 +16,7 @@ export interface OrderLineItem {
 export enum OrderStatus {
     Placed = "Placed",
 }
+
+export const calculateOrderTotal = (lineItems: OrderLineItem[]): number => {
+    return round(lineItems.reduce((total, item) => total + item.unitPrice * item.quantity, 0));
+};

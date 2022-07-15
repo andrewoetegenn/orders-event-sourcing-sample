@@ -42,7 +42,7 @@ export class OrdersEventSourcingSampleStack extends Stack {
         const placeOrderHandler = new NodejsFunction(this, "PlaceOrderHandler", {
             runtime: Runtime.NODEJS_14_X,
             handler: "placeOrderHandler",
-            entry: path.join(__dirname, "../src/handlers.ts"),
+            entry: path.join(__dirname, "../src/handlers/place-order-handler.ts"),
             tracing: Tracing.ACTIVE,
             environment: {
                 EVENT_STORE_NAME: eventStore.tableName,
@@ -57,7 +57,7 @@ export class OrdersEventSourcingSampleStack extends Stack {
         const orderPlacedHandler = new NodejsFunction(this, "OrderPlacedHandler", {
             runtime: Runtime.NODEJS_14_X,
             handler: "orderPlacedHandler",
-            entry: path.join(__dirname, "../src/handlers.ts"),
+            entry: path.join(__dirname, "../src/handlers/order-placed-handler.ts"),
             tracing: Tracing.ACTIVE,
             environment: {
                 QUERY_STORE_NAME: queryStore.tableName,
@@ -79,7 +79,7 @@ export class OrdersEventSourcingSampleStack extends Stack {
         const getOrderHandler = new NodejsFunction(this, "GetOrderHandler", {
             runtime: Runtime.NODEJS_14_X,
             handler: "getOrderHandler",
-            entry: path.join(__dirname, "../src/handlers.ts"),
+            entry: path.join(__dirname, "../src/handlers/get-order-handler.ts"),
             tracing: Tracing.ACTIVE,
             environment: {
                 QUERY_STORE_NAME: queryStore.tableName,
@@ -94,7 +94,7 @@ export class OrdersEventSourcingSampleStack extends Stack {
         const addOrderLineItemHandler = new NodejsFunction(this, "AddLineItemToOrderHandler", {
             runtime: Runtime.NODEJS_14_X,
             handler: "addLineItemToOrderHandler",
-            entry: path.join(__dirname, "../src/handlers.ts"),
+            entry: path.join(__dirname, "../src/handlers/add-line-item-to-order-handler.ts"),
             tracing: Tracing.ACTIVE,
             environment: {
                 EVENT_STORE_NAME: eventStore.tableName,
@@ -109,7 +109,7 @@ export class OrdersEventSourcingSampleStack extends Stack {
         const orderLineItemAddedHandler = new NodejsFunction(this, "LineItemAddedToOrderHandler", {
             runtime: Runtime.NODEJS_14_X,
             handler: "lineItemAddedToOrderHandler",
-            entry: path.join(__dirname, "../src/handlers.ts"),
+            entry: path.join(__dirname, "../src/handlers/line-item-added-to-order-handler.ts"),
             tracing: Tracing.ACTIVE,
             environment: {
                 QUERY_STORE_NAME: queryStore.tableName,
@@ -131,7 +131,7 @@ export class OrdersEventSourcingSampleStack extends Stack {
         const eventStreamHandler = new NodejsFunction(this, "EventStreamHandler", {
             runtime: Runtime.NODEJS_14_X,
             handler: "eventStreamHandler",
-            entry: path.join(__dirname, "../src/handlers.ts"),
+            entry: path.join(__dirname, "../src/handlers/event-stream-handler.ts"),
             tracing: Tracing.ACTIVE,
             environment: {
                 EVENT_BUS_NAME: eventBus.eventBusName,
