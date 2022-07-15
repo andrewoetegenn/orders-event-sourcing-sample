@@ -32,3 +32,9 @@ content-type: application/json
     "quantity": 3,
     "unitPrice": 1.29
 }
+
+###
+
+# @name getOrder
+GET {{baseUrl}}/orders/{{orderId}} HTTP/1.1
+content-type: application/json

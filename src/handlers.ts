@@ -69,13 +69,39 @@ export const lineItemAddedToOrderHandler: EventBridgeHandler<"LineItemAddedToOrd
         unitPrice: event.detail.lineItem.unitPrice,
     } as OrderLineItem);
 
-    order.orderTotal += round(event.detail.lineItem.unitPrice * event.detail.lineItem.quantity);
+    order.orderTotal = round(order.orderTotal + event.detail.lineItem.unitPrice * event.detail.lineItem.quantity);
 
     await ordersQueryStore.save(order);
 };
 
+export const getOrderHandler: APIGatewayProxyHandlerV2 = async (event) => {
+    if (!event.pathParameters?.orderId) {
+        return {
+            statusCode: 400,
+        };
+    }
+
+    const orderId = event.pathParameters.orderId;
+    const order = await ordersQueryStore.get(orderId);
+
+    if (!order) {
+        return {
+            statusCode: 404,
+        };
+    }
+
+    return {
+        statusCode: 200,
+        body: JSON.stringify(order),
+    };
+};
+
 export const eventStreamHandler: DynamoDBStreamHandler = async (event) => {
     for (const record of event.Records) {
+        if (!record.dynamodb?.NewImage) {
+            throw new Error("Invalid dynamo db record");
+        }
+
         const item = unmarshall(
             record.dynamodb?.NewImage as {
                 [key: string]: AttributeValue;

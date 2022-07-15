@@ -75,6 +75,21 @@ export class OrdersEventSourcingSampleStack extends Stack {
             targets: [new LambdaFunction(orderPlacedHandler)],
         });
 
+        // Get Order
+        const getOrderHandler = new NodejsFunction(this, "GetOrderHandler", {
+            runtime: Runtime.NODEJS_14_X,
+            handler: "getOrderHandler",
+            entry: path.join(__dirname, "../src/handlers.ts"),
+            tracing: Tracing.ACTIVE,
+            environment: {
+                QUERY_STORE_NAME: queryStore.tableName,
+            },
+        });
+
+        queryStore.grantReadData(getOrderHandler);
+
+        api.root.resourceForPath("/orders/{orderId}").addMethod("GET", new LambdaIntegration(getOrderHandler));
+
         // Add Line Item To Order
         const addOrderLineItemHandler = new NodejsFunction(this, "AddLineItemToOrderHandler", {
             runtime: Runtime.NODEJS_14_X,
@@ -123,7 +138,7 @@ export class OrdersEventSourcingSampleStack extends Stack {
             },
         });
 
-        eventStreamHandler.addEventSource(new DynamoEventSource(eventStore, { startingPosition: StartingPosition.TRIM_HORIZON }));
+        eventStreamHandler.addEventSource(new DynamoEventSource(eventStore, { startingPosition: StartingPosition.TRIM_HORIZON, retryAttempts: 2 }));
 
         eventBus.grantPutEventsTo(eventStreamHandler);
     }
