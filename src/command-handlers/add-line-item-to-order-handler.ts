@@ -1,9 +1,10 @@
-import { APIGatewayProxyHandlerV2 } from "aws-lambda";
+import { APIGatewayProxyEventV2, APIGatewayProxyStructuredResultV2 } from "aws-lambda";
 import { ordersRepository } from "../persistance";
+import { withErrorHandling } from "../middleware";
 import { AddLineItemToOrder } from "../commands";
 import { OrderLineItem } from "../domain";
 
-export const addLineItemToOrderHandler: APIGatewayProxyHandlerV2 = async (event) => {
+const handler = async (event: APIGatewayProxyEventV2): Promise<APIGatewayProxyStructuredResultV2> => {
     if (!event.pathParameters?.orderId || !event.body) {
         return {
             statusCode: 400,
@@ -21,3 +22,5 @@ export const addLineItemToOrderHandler: APIGatewayProxyHandlerV2 = async (event)
         statusCode: 200,
     };
 };
+
+export const addLineItemToOrderHandler: (event: APIGatewayProxyEventV2) => Promise<APIGatewayProxyStructuredResultV2> = withErrorHandling(handler);

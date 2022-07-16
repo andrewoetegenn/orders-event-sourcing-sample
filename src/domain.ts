@@ -48,6 +48,10 @@ export class Order extends Aggregate {
     }
 
     public addLineItem(lineItem: OrderLineItem): void {
+        if (this.orderStatus !== OrderStatus.Placed) {
+            throw new DomainError("InvalidOrderStatus", `Line items can only be added to order when in status '${OrderStatus.Placed}'.`);
+        }
+
         this.raiseEvent(new LineItemAddedToOrder(this.aggregateId, lineItem));
     }
 
@@ -103,6 +107,7 @@ export class DomainError extends Error {
     constructor(name: DomainErrorName, message: string) {
         super(message);
         this.name = name;
+        Object.setPrototypeOf(this, DomainError.prototype);
     }
 }
 
