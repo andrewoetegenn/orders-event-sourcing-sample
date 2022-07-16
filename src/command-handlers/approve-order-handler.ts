@@ -12,16 +12,7 @@ export const approveOrderHandler: APIGatewayProxyHandlerV2 = async (event) => {
 
     const orderId = event.pathParameters.orderId;
     const order = await ordersRepository.getById(orderId);
-
-    try {
-        order.approve();
-    } catch (error) {
-        return {
-            statusCode: 400,
-            body: JSON.stringify({ error }),
-        };
-    }
-
+    order.approve();
     await ordersRepository.save(order);
 
     return {

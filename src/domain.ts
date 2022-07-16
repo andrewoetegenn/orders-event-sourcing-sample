@@ -58,6 +58,10 @@ export class Order extends Aggregate {
     private applyLineItemAddedToOrder(event: LineItemAddedToOrder): void {}
 
     public approve(): void {
+        if (this.orderStatus === OrderStatus.Approved) {
+            return;
+        }
+
         if (this.orderStatus !== OrderStatus.Placed) {
             throw new DomainError("InvalidOrderStatus", `Orders can only be approved when in status '${OrderStatus.Placed}'.`);
         }

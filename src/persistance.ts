@@ -15,9 +15,13 @@ class OrdersRepository implements IRepository<Order> {
     }
 
     public async save(aggregate: Order): Promise<void> {
-        const historicalEvents = await this.getEventsForAggregate(aggregate.getAggregateId());
         const pendingEvents = aggregate.getPendingEvents();
 
+        if (pendingEvents.length === 0) {
+            return;
+        }
+
+        const historicalEvents = await this.getEventsForAggregate(aggregate.getAggregateId());
         let currentVersion = historicalEvents ? historicalEvents.length - 1 : -1;
 
         for (const event of pendingEvents) {
