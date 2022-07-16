@@ -1,9 +1,8 @@
-import { APIGatewayProxyHandlerV2 } from "aws-lambda";
+import { APIGatewayProxyEventV2, APIGatewayProxyStructuredResultV2 } from "aws-lambda";
+import { withHttpErrorHandling } from "../middleware";
 import { ordersRepository } from "../persistance";
-import { Order, OrderLineItem } from "../domain";
-import { PlaceOrder } from "../commands";
 
-export const approveOrderHandler: APIGatewayProxyHandlerV2 = async (event) => {
+const handler = async (event: APIGatewayProxyEventV2): Promise<APIGatewayProxyStructuredResultV2> => {
     if (!event.pathParameters?.orderId) {
         return {
             statusCode: 400,
@@ -19,3 +18,5 @@ export const approveOrderHandler: APIGatewayProxyHandlerV2 = async (event) => {
         statusCode: 200,
     };
 };
+
+export const approveOrderHandler: (event: APIGatewayProxyEventV2) => Promise<APIGatewayProxyStructuredResultV2> = withHttpErrorHandling(handler);

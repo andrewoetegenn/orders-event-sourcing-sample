@@ -1,6 +1,6 @@
 import { APIGatewayProxyEventV2, APIGatewayProxyStructuredResultV2 } from "aws-lambda";
+import { withHttpErrorHandling } from "../middleware";
 import { ordersRepository } from "../persistance";
-import { withErrorHandling } from "../middleware";
 import { AddLineItemToOrder } from "../commands";
 import { OrderLineItem } from "../domain";
 
@@ -23,4 +23,4 @@ const handler = async (event: APIGatewayProxyEventV2): Promise<APIGatewayProxySt
     };
 };
 
-export const addLineItemToOrderHandler: (event: APIGatewayProxyEventV2) => Promise<APIGatewayProxyStructuredResultV2> = withErrorHandling(handler);
+export const addLineItemToOrderHandler: (event: APIGatewayProxyEventV2) => Promise<APIGatewayProxyStructuredResultV2> = withHttpErrorHandling(handler);

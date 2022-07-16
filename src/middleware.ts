@@ -5,7 +5,7 @@ const domainErrors: Record<DomainErrorName, number> = {
     InvalidOrderStatus: 400,
 };
 
-export const withErrorHandling =
+export const withHttpErrorHandling =
     (handler: (event: APIGatewayProxyEventV2) => Promise<APIGatewayProxyStructuredResultV2>) =>
     async (event: APIGatewayProxyEventV2): Promise<APIGatewayProxyStructuredResultV2> => {
         try {
