@@ -1,27 +1,28 @@
 import { APIGatewayProxyEventV2, APIGatewayProxyStructuredResultV2 } from "aws-lambda";
-import { DomainError, DomainErrorName } from "./domain";
-
-const domainErrors: Record<DomainErrorName, number> = {
-    InvalidOrderStatus: 400,
-};
+import { InvalidOrderStatusError, OrderNotFoundError } from "./errors";
 
 export const withHttpErrorHandling =
     (handler: (event: APIGatewayProxyEventV2) => Promise<APIGatewayProxyStructuredResultV2>) =>
     async (event: APIGatewayProxyEventV2): Promise<APIGatewayProxyStructuredResultV2> => {
         try {
             return await handler(event);
-        } catch (error) {
-            if (error instanceof DomainError) {
-                const domainError = error as DomainError;
+        } catch (err) {
+            const error = err as Error;
 
-                return {
-                    statusCode: domainErrors[domainError.name],
-                    body: JSON.stringify({ type: domainError.name, message: domainError.message }),
-                };
+            switch (error.constructor) {
+                case InvalidOrderStatusError:
+                    return buildErrorResponse(error, 400);
+                case OrderNotFoundError:
+                    return buildErrorResponse(error, 404);
+                default:
+                    return { statusCode: 500 };
             }
-
-            return {
-                statusCode: 500,
-            };
         }
     };
+
+const buildErrorResponse = (error: Error, statusCode: number) => {
+    return {
+        statusCode,
+        body: JSON.stringify({ type: error.name, message: error.message }),
+    };
+};

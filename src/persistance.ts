@@ -1,5 +1,6 @@
 import { PutCommand, PutCommandInput, QueryCommand, QueryCommandInput } from "@aws-sdk/lib-dynamodb";
 import { Order as OrderProjection } from "./projections";
+import { OrderNotFoundError } from "./errors";
 import { dynamoDBClient } from "./services";
 import { IEvent } from "./events";
 import { Order } from "./domain";
@@ -46,6 +47,11 @@ class OrdersRepository implements IRepository<Order> {
 
     public async getById(aggregateId: string): Promise<Order> {
         const historicalEvents = await this.getEventsForAggregate(aggregateId);
+
+        if (historicalEvents.length === 0) {
+            throw new OrderNotFoundError();
+        }
+
         const aggregate = new Order();
         aggregate.loadFromHistory(historicalEvents);
         return aggregate;
@@ -80,18 +86,17 @@ interface IQueryStore<T> {
     save(data: T): Promise<void>;
 }
 
-class QueryStore<T> implements IQueryStore<T> {
+class OrdersQueryStore implements IQueryStore<OrderProjection> {
     private tableName: string;
-    private Type: new () => T;
 
     constructor(tableName: string) {
         this.tableName = tableName;
     }
 
-    public async get(id: string): Promise<T> {
+    public async get(id: string): Promise<OrderProjection> {
         const params: QueryCommandInput = {
             TableName: this.tableName,
-            KeyConditionExpression: `orderId = :orderId`, // TODO: How do I make this generic??
+            KeyConditionExpression: `orderId = :orderId`,
             ExpressionAttributeValues: {
                 ":orderId": id,
             },
@@ -101,13 +106,13 @@ class QueryStore<T> implements IQueryStore<T> {
         const data = await dynamoDBClient.send(new QueryCommand(params));
 
         if (!data.Items || data.Items.length === 0) {
-            return new this.Type() as T;
+            throw new OrderNotFoundError();
         }
 
-        return data.Items[0] as T;
+        return data.Items[0] as OrderProjection;
     }
 
-    public async save(data: T): Promise<void> {
+    public async save(data: OrderProjection): Promise<void> {
         const params: PutCommandInput = {
             TableName: this.tableName,
             Item: data,
@@ -117,4 +122,4 @@ class QueryStore<T> implements IQueryStore<T> {
     }
 }
 
-export const ordersQueryStore = new QueryStore<OrderProjection>(process.env.QUERY_STORE_NAME ?? "");
+export const ordersQueryStore = new OrdersQueryStore(process.env.QUERY_STORE_NAME ?? "");

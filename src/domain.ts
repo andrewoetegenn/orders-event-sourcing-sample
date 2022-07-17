@@ -1,4 +1,5 @@
 import { IEvent, OrderPlaced, LineItemAddedToOrder, OrderApproved } from "./events";
+import { InvalidOrderStatusError } from "./errors";
 import { v4 as uuid } from "uuid";
 
 abstract class Aggregate {
@@ -49,7 +50,7 @@ export class Order extends Aggregate {
 
     public addLineItem(lineItem: OrderLineItem): void {
         if (this.orderStatus !== OrderStatus.Placed) {
-            throw new DomainError("InvalidOrderStatus", `Line items can only be added to order when in status '${OrderStatus.Placed}'.`);
+            throw new InvalidOrderStatusError();
         }
 
         this.raiseEvent(new LineItemAddedToOrder(this.aggregateId, lineItem));
@@ -63,7 +64,7 @@ export class Order extends Aggregate {
         }
 
         if (this.orderStatus !== OrderStatus.Placed) {
-            throw new DomainError("InvalidOrderStatus", `Orders can only be approved when in status '${OrderStatus.Placed}'.`);
+            throw new InvalidOrderStatusError();
         }
 
         this.raiseEvent(new OrderApproved(this.aggregateId));
@@ -106,13 +107,3 @@ export enum OrderStatus {
     Placed = "Placed",
     Approved = "Approved",
 }
-
-export class DomainError extends Error {
-    constructor(name: DomainErrorName, message: string) {
-        super(message);
-        this.name = name;
-        Object.setPrototypeOf(this, DomainError.prototype);
-    }
-}
-
-export type DomainErrorName = "InvalidOrderStatus";
