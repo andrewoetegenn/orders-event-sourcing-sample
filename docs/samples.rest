@@ -44,3 +44,16 @@ content-type: application/json
 # @name approveOrder
 POST {{baseUrl}}/orders/{{orderId}}/approve HTTP/1.1
 content-type: application/json
+
+###
+
+# @name paymentReceived
+POST https://hmigg3okfdaosq2k7svbasymwu0uknut.lambda-url.eu-west-1.on.aws/ HTTP/1.1
+content-type: application/json
+
+{
+    "aggregateId": "12345",
+    "type": "PaymentReceived",
+    "orderId": "{{orderId}}",
+    "amount": 33.84
+}

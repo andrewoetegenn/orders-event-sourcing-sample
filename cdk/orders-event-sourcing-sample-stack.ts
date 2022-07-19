@@ -1,5 +1,5 @@
+import { FunctionUrlAuthType, Runtime, StartingPosition, Tracing } from "aws-cdk-lib/aws-lambda";
 import { AttributeType, StreamViewType, Table } from "aws-cdk-lib/aws-dynamodb";
-import { Runtime, StartingPosition, Tracing } from "aws-cdk-lib/aws-lambda";
 import { DynamoEventSource } from "aws-cdk-lib/aws-lambda-event-sources";
 import { LambdaIntegration, RestApi } from "aws-cdk-lib/aws-apigateway";
 import { LambdaFunction } from "aws-cdk-lib/aws-events-targets";
@@ -163,6 +163,23 @@ export class OrdersEventSourcingSampleStack extends Stack {
             },
             targets: [new LambdaFunction(orderApprovedHandler)],
         });
+
+        // Payment Received
+        const paymentReceivedHandler = new NodejsFunction(this, "PaymentReceivedHandler", {
+            runtime: Runtime.NODEJS_14_X,
+            handler: "paymentReceivedHandler",
+            entry: path.join(__dirname, "../src/handlers.ts"),
+            tracing: Tracing.ACTIVE,
+            environment: {
+                EVENT_STORE_NAME: eventStore.tableName,
+            },
+        });
+
+        paymentReceivedHandler.addFunctionUrl({
+            authType: FunctionUrlAuthType.NONE,
+        });
+
+        eventStore.grantReadWriteData(paymentReceivedHandler);
 
         // Event Stream
         const eventStreamHandler = new NodejsFunction(this, "EventStreamHandler", {

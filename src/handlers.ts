@@ -24,18 +24,20 @@ import { approveOrderHandler } from "./command-handlers/approve-order-handler";
 import { placeOrderHandler } from "./command-handlers/place-order-handler";
 
 import { lineItemAddedToOrderHandler } from "./event-handlers/line-item-added-to-order-handler";
+import { paymentReceivedHandler } from "./event-handlers/payment-received-handler";
 import { orderApprovedHandler } from "./event-handlers/order-approved-handler";
 import { orderPlacedHandler } from "./event-handlers/order-placed-handler";
 
 import { getOrderHandler } from "./query-handlers/get-order-handler";
 
 export {
-    placeOrderHandler,
     addLineItemToOrderHandler,
     approveOrderHandler,
-    orderPlacedHandler,
+    placeOrderHandler,
     lineItemAddedToOrderHandler,
+    paymentReceivedHandler,
     orderApprovedHandler,
+    orderPlacedHandler,
     getOrderHandler,
     eventStreamHandler,
 };

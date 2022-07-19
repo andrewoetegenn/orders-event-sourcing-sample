@@ -13,3 +13,11 @@ export class OrderNotFoundError extends Error {
         Object.setPrototypeOf(this, OrderNotFoundError.prototype);
     }
 }
+
+export class InvalidPaymentError extends Error {
+    constructor() {
+        super("Payment amount is greater than the order total.");
+        this.name = "InvalidPayment";
+        Object.setPrototypeOf(this, InvalidPaymentError.prototype);
+    }
+}

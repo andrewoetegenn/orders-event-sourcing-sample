@@ -1,6 +1,7 @@
-import { IEvent, OrderPlaced, LineItemAddedToOrder, OrderApproved } from "./events";
-import { InvalidOrderStatusError } from "./errors";
+import { IEvent, OrderPlaced, LineItemAddedToOrder, OrderApproved, OrderPaymentReceived, OrderCompleted } from "./events";
+import { InvalidOrderStatusError, InvalidPaymentError } from "./errors";
 import { v4 as uuid } from "uuid";
+import { round } from "./utils";
 
 abstract class Aggregate {
     protected aggregateId: string;
@@ -31,7 +32,10 @@ abstract class Aggregate {
 }
 
 export class Order extends Aggregate {
-    private orderStatus: OrderStatus;
+    private orderStatus: OrderStatus = OrderStatus.Placed;
+    private lineItems: OrderLineItem[] = [];
+    private orderTotal: number = 0;
+    private payments: Payment[] = [];
 
     public static place(lineItems: OrderLineItem[]): Order {
         const order = new Order();
@@ -45,7 +49,8 @@ export class Order extends Aggregate {
 
     private applyOrderPlaced(event: OrderPlaced): void {
         this.aggregateId = event.aggregateId;
-        this.orderStatus = OrderStatus.Placed;
+        this.lineItems.push(...event.lineItems);
+        this.orderTotal = this.calculateOrderTotal();
     }
 
     public addLineItem(lineItem: OrderLineItem): void {
@@ -56,7 +61,10 @@ export class Order extends Aggregate {
         this.raiseEvent(new LineItemAddedToOrder(this.aggregateId, lineItem));
     }
 
-    private applyLineItemAddedToOrder(event: LineItemAddedToOrder): void {}
+    private applyLineItemAddedToOrder(event: LineItemAddedToOrder): void {
+        this.lineItems.push(event.lineItem);
+        this.orderTotal = this.calculateOrderTotal();
+    }
 
     public approve(): void {
         if (this.orderStatus === OrderStatus.Approved) {
@@ -74,6 +82,38 @@ export class Order extends Aggregate {
         this.orderStatus = OrderStatus.Approved;
     }
 
+    public receivePayment(paymentId: string, amount: number): void {
+        if (this.orderStatus !== OrderStatus.Approved) {
+            throw new InvalidOrderStatusError();
+        }
+
+        if (this.calculatePaymentTotal() + amount > this.orderTotal) {
+            throw new InvalidPaymentError();
+        }
+
+        this.raiseEvent(new OrderPaymentReceived(this.aggregateId, paymentId, amount));
+
+        if (this.calculatePaymentTotal() === this.orderTotal) {
+            this.raiseEvent(new OrderCompleted(this.aggregateId));
+        }
+    }
+
+    private applyOrderPaymentReceived(event: OrderPaymentReceived): void {
+        this.payments.push(new Payment(event.paymentId, event.amount));
+    }
+
+    private applyOrderCompleted(event: OrderCompleted): void {
+        this.orderStatus = OrderStatus.Completed;
+    }
+
+    private calculateOrderTotal(): number {
+        return round(this.lineItems.reduce((total, item) => total + item.unitPrice * item.quantity, 0));
+    }
+
+    private calculatePaymentTotal(): number {
+        return round(this.payments.reduce((total, payment) => total + payment.amount, 0));
+    }
+
     protected apply(event: IEvent): void {
         switch (event.type) {
             case "OrderPlaced":
@@ -84,6 +124,12 @@ export class Order extends Aggregate {
                 break;
             case "OrderApproved":
                 this.applyOrderApproved(event as OrderApproved);
+                break;
+            case "OrderPaymentReceived":
+                this.applyOrderPaymentReceived(event as OrderPaymentReceived);
+                break;
+            case "OrderCompleted":
+                this.applyOrderCompleted(event as OrderCompleted);
                 break;
             default:
                 throw new Error(`No application found for event type ${event.type}.`);
@@ -106,4 +152,15 @@ export class OrderLineItem {
 export enum OrderStatus {
     Placed = "Placed",
     Approved = "Approved",
+    Completed = "Completed",
+}
+
+export class Payment {
+    paymentId: string;
+    amount: number;
+
+    constructor(paymentId: string, amount: number) {
+        this.paymentId = paymentId;
+        this.amount = amount;
+    }
 }
