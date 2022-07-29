@@ -1,8 +1,8 @@
 import { EventBridgeClient, PutEventsCommand } from "@aws-sdk/client-eventbridge";
 import axios from "axios";
 
-const baseUrl = "https://i3zzmmndgk.execute-api.eu-west-1.amazonaws.com/prod";
-const eventBusName = "";
+const baseUrl = "https://pppuzvvtxe.execute-api.eu-west-1.amazonaws.com/prod";
+const eventBusName = "OrdersEventSourcingSampleStackOrdersEvents24AB1CCC";
 const eventBridge = new EventBridgeClient({});
 
 describe("order journeys", () => {
@@ -15,6 +15,8 @@ describe("order journeys", () => {
         await publishPaymentReceived();
         // Shipment dispatched
         // Shipment delivered
+
+        console.log("Order ID: ", orderId);
     });
 
     const placeOrder = async () => {
@@ -64,13 +66,13 @@ describe("order journeys", () => {
 
     const publishShipmentDelivered = async () => {};
 
-    const publishEvent = async (source, detailType, event) => {
+    const publishEvent = async (source: string, detailType: string, event) => {
         const params = {
             Entries: [
                 {
                     Detail: JSON.stringify(event),
                     DetailType: detailType,
-                    EventBusName: "orders-event-bus",
+                    EventBusName: eventBusName,
                     Source: source,
                 },
             ],

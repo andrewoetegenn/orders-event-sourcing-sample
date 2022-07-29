@@ -5,7 +5,7 @@ import * as cdk from "aws-cdk-lib";
 const app = new cdk.App();
 
 new OrdersEventSourcingSampleStack(app, "OrdersEventSourcingSampleStack", {
-    stackName: "orders-sample-event-sourcing",
+    stackName: "orders-event-sourcing-sample",
     description: "A fictional orders domain demonstrating CQRS and event sourcing patterns",
     env: { account: "652801582837", region: "eu-west-1" },
 });

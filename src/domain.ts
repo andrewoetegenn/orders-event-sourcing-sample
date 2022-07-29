@@ -115,19 +115,19 @@ export class Order extends Aggregate {
 
     protected apply(event: IEvent): void {
         switch (event.type) {
-            case "OrderPlaced":
+            case "orderPlaced":
                 this.applyOrderPlaced(event as OrderPlaced);
                 break;
-            case "LineItemAddedToOrder":
+            case "lineItemAddedToOrder":
                 this.applyLineItemAddedToOrder(event as LineItemAddedToOrder);
                 break;
-            case "OrderApproved":
+            case "orderApproved":
                 this.applyOrderApproved(event as OrderApproved);
                 break;
-            case "OrderPaymentReceived":
+            case "orderPaymentReceived":
                 this.applyOrderPaymentReceived(event as OrderPaymentReceived);
                 break;
-            case "OrderCompleted":
+            case "orderCompleted":
                 this.applyOrderCompleted(event as OrderCompleted);
                 break;
             default:
