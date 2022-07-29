@@ -1,10 +1,10 @@
-import { Order, OrderLineItem } from "../projections";
 import { OrderLineItem as DomainOrderLineItem } from "../domain";
+import { Order, OrderLineItem } from "../projections";
 import { ordersQueryStore } from "../persistance";
 import { LineItemAddedToOrder } from "../events";
 import { EventBridgeHandler } from "aws-lambda";
 
-export const lineItemAddedToOrderHandler: EventBridgeHandler<"LineItemAddedToOrder", LineItemAddedToOrder, void> = async (event) => {
+export const lineItemAddedToOrderHandler: EventBridgeHandler<"lineItemAddedToOrder", LineItemAddedToOrder, void> = async (event) => {
     const order = await ordersQueryStore.get(event.detail.aggregateId);
 
     const lineItemIndex = order.lineItems.findIndex((item) => item.sku === event.detail.lineItem.sku);

@@ -34,7 +34,7 @@ export class OrdersEventSourcingSampleStack extends Stack {
         const orderPlacedHandler = this.configureEventLambda(
             "OrderPlacedHandler",
             "orderPlacedHandler",
-            { bus: eventBus, id: "OrderPlacedRule", detailType: ["OrderPlaced"] },
+            { bus: eventBus, id: "OrderPlacedRule", detailType: ["orderPlaced"] },
             {
                 QUERY_STORE_NAME: queryStore.tableName,
             }
@@ -70,7 +70,7 @@ export class OrdersEventSourcingSampleStack extends Stack {
         const lineItemAddedToOrderHandler = this.configureEventLambda(
             "LineItemAddedToOrderHandler",
             "lineItemAddedToOrderHandler",
-            { bus: eventBus, id: "LineItemAddedToOrderRule", detailType: ["LineItemAddedToOrder"] },
+            { bus: eventBus, id: "LineItemAddedToOrderRule", detailType: ["lineItemAddedToOrder"] },
             {
                 QUERY_STORE_NAME: queryStore.tableName,
             }
@@ -94,7 +94,7 @@ export class OrdersEventSourcingSampleStack extends Stack {
         const orderApprovedHandler = this.configureEventLambda(
             "OrderApprovedHandler",
             "orderApprovedHandler",
-            { bus: eventBus, id: "OrderApprovedRule", detailType: ["OrderApproved"] },
+            { bus: eventBus, id: "OrderApprovedRule", detailType: ["orderApproved"] },
             {
                 QUERY_STORE_NAME: queryStore.tableName,
             }
@@ -212,7 +212,7 @@ export class OrdersEventSourcingSampleStack extends Stack {
         new Rule(this, eventRuleOptions.id, {
             eventBus: eventRuleOptions.bus,
             eventPattern: {
-                source: ["Orders"],
+                source: ["orders"],
                 detailType: eventRuleOptions.detailType,
             },
             targets: [new LambdaFunction(lambda)],

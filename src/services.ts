@@ -13,7 +13,7 @@ export const publishEvent = async <T extends IEvent>(detailType: string, detail:
         Entries: [
             {
                 EventBusName: process.env.EVENT_BUS_NAME ?? "",
-                Source: "Orders",
+                Source: "orders",
                 DetailType: detailType,
                 Detail: JSON.stringify(detail),
             },

@@ -3,7 +3,7 @@ import { ordersQueryStore } from "../persistance";
 import { EventBridgeHandler } from "aws-lambda";
 import { OrderPlaced } from "../events";
 
-export const orderPlacedHandler: EventBridgeHandler<"OrderPlaced", OrderPlaced, void> = async (event) => {
+export const orderPlacedHandler: EventBridgeHandler<"orderPlaced", OrderPlaced, void> = async (event) => {
     const lineItems = event.detail.lineItems.map((x) => {
         return { sku: x.sku, quantity: x.quantity, unitPrice: x.unitPrice } as OrderLineItem;
     });
