@@ -1,7 +1,7 @@
 import { EventBridgeClient, PutEventsCommand } from "@aws-sdk/client-eventbridge";
 import axios from "axios";
 
-const baseUrl = "https://pppuzvvtxe.execute-api.eu-west-1.amazonaws.com/prod";
+const baseUrl = "https://ozsnw4zbm2.execute-api.eu-west-1.amazonaws.com/prod";
 const eventBusName = "OrdersEventSourcingSampleStackOrdersEvents24AB1CCC";
 const eventBridge = new EventBridgeClient({});
 

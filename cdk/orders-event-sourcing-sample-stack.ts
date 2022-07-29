@@ -34,7 +34,7 @@ export class OrdersEventSourcingSampleStack extends Stack {
         const orderPlacedHandler = this.configureEventLambda(
             "OrderPlacedHandler",
             "orderPlacedHandler",
-            { bus: eventBus, id: "OrderPlacedRule", detailType: ["orderPlaced"] },
+            { bus: eventBus, id: "OrderPlacedRule", source: "orders", detailType: ["orderPlaced"] },
             {
                 QUERY_STORE_NAME: queryStore.tableName,
             }
@@ -70,7 +70,7 @@ export class OrdersEventSourcingSampleStack extends Stack {
         const lineItemAddedToOrderHandler = this.configureEventLambda(
             "LineItemAddedToOrderHandler",
             "lineItemAddedToOrderHandler",
-            { bus: eventBus, id: "LineItemAddedToOrderRule", detailType: ["lineItemAddedToOrder"] },
+            { bus: eventBus, id: "LineItemAddedToOrderRule", source: "orders", detailType: ["lineItemAddedToOrder"] },
             {
                 QUERY_STORE_NAME: queryStore.tableName,
             }
@@ -94,7 +94,7 @@ export class OrdersEventSourcingSampleStack extends Stack {
         const orderApprovedHandler = this.configureEventLambda(
             "OrderApprovedHandler",
             "orderApprovedHandler",
-            { bus: eventBus, id: "OrderApprovedRule", detailType: ["orderApproved"] },
+            { bus: eventBus, id: "OrderApprovedRule", source: "orders", detailType: ["orderApproved"] },
             {
                 QUERY_STORE_NAME: queryStore.tableName,
             }
@@ -103,13 +103,16 @@ export class OrdersEventSourcingSampleStack extends Stack {
         queryStore.grantReadWriteData(orderApprovedHandler);
 
         // Payment Received
-        const paymentReceivedLambda = this.configureLambda("PaymentReceivedHandler", "paymentReceivedHandler", {
-            EVENT_STORE_NAME: eventStore.tableName,
-        });
+        const paymentReceivedLambda = this.configureEventLambda(
+            "PaymentReceivedHandler",
+            "paymentReceivedHandler",
+            { bus: eventBus, id: "PaymentReceivedRule", source: "payments", detailType: ["paymentReceived"] },
+            {
+                EVENT_STORE_NAME: eventStore.tableName,
+            }
+        );
 
         eventStore.grantReadWriteData(paymentReceivedLambda);
-
-        paymentReceivedLambda.addFunctionUrl({ authType: FunctionUrlAuthType.NONE });
 
         // Event Stream
         const eventStreamHandler = this.configureLambda("EventStreamHandler", "eventStreamHandler", {
@@ -201,6 +204,7 @@ export class OrdersEventSourcingSampleStack extends Stack {
         eventRuleOptions: {
             bus: EventBus;
             id: string;
+            source: string;
             detailType: string[];
         },
         environment?: {

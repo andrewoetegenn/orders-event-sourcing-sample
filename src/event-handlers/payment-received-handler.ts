@@ -1,14 +1,10 @@
 import { ordersRepository } from "../persistance";
-import { Handler } from "aws-lambda";
+import { EventBridgeHandler } from "aws-lambda";
 import { PaymentReceived } from "../events";
 
-export const paymentReceivedHandler: Handler = async (event) => {
-    console.log("Payment received event: ", event.body);
-
-    const paymentReceived = JSON.parse(event.body) as PaymentReceived;
-
-    const orderId = paymentReceived.orderId;
+export const paymentReceivedHandler: EventBridgeHandler<"paymentReceived", PaymentReceived, void> = async (event) => {
+    const orderId = event.detail.orderId;
     const order = await ordersRepository.getById(orderId);
-    order.receivePayment(paymentReceived.aggregateId, paymentReceived.amount);
+    order.receivePayment(event.detail.aggregateId, event.detail.amount);
     await ordersRepository.save(order);
 };
