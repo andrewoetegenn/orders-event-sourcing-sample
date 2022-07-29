@@ -216,7 +216,7 @@ export class OrdersEventSourcingSampleStack extends Stack {
         new Rule(this, eventRuleOptions.id, {
             eventBus: eventRuleOptions.bus,
             eventPattern: {
-                source: ["orders"],
+                source: [eventRuleOptions.source],
                 detailType: eventRuleOptions.detailType,
             },
             targets: [new LambdaFunction(lambda)],
