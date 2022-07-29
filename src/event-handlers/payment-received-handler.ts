@@ -3,9 +3,9 @@ import { Handler } from "aws-lambda";
 import { PaymentReceived } from "../events";
 
 export const paymentReceivedHandler: Handler = async (event) => {
-    console.log("Payment received event: ", event);
+    console.log("Payment received event: ", event.body);
 
-    const paymentReceived = JSON.parse(event) as PaymentReceived;
+    const paymentReceived = JSON.parse(event.body) as PaymentReceived;
 
     const orderId = paymentReceived.orderId;
     const order = await ordersRepository.getById(orderId);
