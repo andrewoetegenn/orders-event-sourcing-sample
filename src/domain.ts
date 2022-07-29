@@ -33,7 +33,6 @@ abstract class Aggregate {
 
 export class Order extends Aggregate {
     private orderStatus: OrderStatus = OrderStatus.Placed;
-    private lineItems: OrderLineItem[] = [];
     private orderTotal: number = 0;
     private payments: Payment[] = [];
 
@@ -44,13 +43,13 @@ export class Order extends Aggregate {
     }
 
     private placeOrder(lineItems: OrderLineItem[]): void {
-        this.raiseEvent(new OrderPlaced(uuid(), lineItems));
+        const orderTotal = round(lineItems.reduce((total, item) => total + item.unitPrice * item.quantity, 0));
+        this.raiseEvent(new OrderPlaced(uuid(), lineItems, orderTotal));
     }
 
     private applyOrderPlaced(event: OrderPlaced): void {
         this.aggregateId = event.aggregateId;
-        this.lineItems.push(...event.lineItems);
-        this.orderTotal = this.calculateOrderTotal();
+        this.orderTotal = event.orderTotal;
     }
 
     public addLineItem(lineItem: OrderLineItem): void {
@@ -58,12 +57,12 @@ export class Order extends Aggregate {
             throw new InvalidOrderStatusError();
         }
 
-        this.raiseEvent(new LineItemAddedToOrder(this.aggregateId, lineItem));
+        const orderTotal = round((this.orderTotal += lineItem.unitPrice * lineItem.quantity));
+        this.raiseEvent(new LineItemAddedToOrder(this.aggregateId, lineItem, orderTotal));
     }
 
     private applyLineItemAddedToOrder(event: LineItemAddedToOrder): void {
-        this.lineItems.push(event.lineItem);
-        this.orderTotal = this.calculateOrderTotal();
+        this.orderTotal = event.orderTotal;
     }
 
     public approve(): void {
@@ -87,13 +86,13 @@ export class Order extends Aggregate {
             throw new InvalidOrderStatusError();
         }
 
-        if (this.calculatePaymentTotal() + amount > this.orderTotal) {
+        if (this.calculatePaymentsTotal() + amount > this.orderTotal) {
             throw new InvalidPaymentError();
         }
 
         this.raiseEvent(new OrderPaymentReceived(this.aggregateId, paymentId, amount));
 
-        if (this.calculatePaymentTotal() === this.orderTotal) {
+        if (this.calculatePaymentsTotal() === this.orderTotal) {
             this.raiseEvent(new OrderCompleted(this.aggregateId));
         }
     }
@@ -106,11 +105,7 @@ export class Order extends Aggregate {
         this.orderStatus = OrderStatus.Completed;
     }
 
-    private calculateOrderTotal(): number {
-        return round(this.lineItems.reduce((total, item) => total + item.unitPrice * item.quantity, 0));
-    }
-
-    private calculatePaymentTotal(): number {
+    private calculatePaymentsTotal(): number {
         return round(this.payments.reduce((total, payment) => total + payment.amount, 0));
     }
 

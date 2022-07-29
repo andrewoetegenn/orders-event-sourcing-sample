@@ -1,9 +1,8 @@
-import { calculateOrderTotal, Order, OrderLineItem } from "../projections";
+import { Order, OrderLineItem } from "../projections";
 import { OrderLineItem as DomainOrderLineItem } from "../domain";
 import { ordersQueryStore } from "../persistance";
 import { LineItemAddedToOrder } from "../events";
 import { EventBridgeHandler } from "aws-lambda";
-import { round } from "../utils";
 
 export const lineItemAddedToOrderHandler: EventBridgeHandler<"LineItemAddedToOrder", LineItemAddedToOrder, void> = async (event) => {
     const order = await ordersQueryStore.get(event.detail.aggregateId);
@@ -16,7 +15,7 @@ export const lineItemAddedToOrderHandler: EventBridgeHandler<"LineItemAddedToOrd
         addLineItem(order, event.detail.lineItem);
     }
 
-    order.orderTotal = calculateOrderTotal(order.lineItems);
+    order.orderTotal = event.detail.orderTotal;
 
     await ordersQueryStore.save(order);
 };

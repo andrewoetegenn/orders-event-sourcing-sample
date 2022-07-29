@@ -1,10 +1,10 @@
 import { ordersRepository } from "../persistance";
-import { EventBridgeHandler } from "aws-lambda";
+import { Handler } from "aws-lambda";
 import { PaymentReceived } from "../events";
 
-export const paymentReceivedHandler: EventBridgeHandler<"PaymentReceived", PaymentReceived, void> = async (event) => {
-    const orderId = event.detail.orderId;
+export const paymentReceivedHandler: Handler = async (event: PaymentReceived) => {
+    const orderId = event.orderId;
     const order = await ordersRepository.getById(orderId);
-    order.receivePayment(event.detail.aggregateId, event.detail.amount);
+    order.receivePayment(event.aggregateId, event.amount);
     await ordersRepository.save(order);
 };

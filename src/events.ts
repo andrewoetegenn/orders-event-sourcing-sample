@@ -8,12 +8,12 @@ export interface IEvent {
 // Domain Events
 export class OrderPlaced implements IEvent {
     public readonly type: string = "OrderPlaced";
-    constructor(public readonly aggregateId: string, public readonly lineItems: OrderLineItem[]) {}
+    constructor(public readonly aggregateId: string, public readonly lineItems: OrderLineItem[], public readonly orderTotal: number) {}
 }
 
 export class LineItemAddedToOrder implements IEvent {
     public readonly type: string = "LineItemAddedToOrder";
-    constructor(public readonly aggregateId: string, public readonly lineItem: OrderLineItem) {}
+    constructor(public readonly aggregateId: string, public readonly lineItem: OrderLineItem, public readonly orderTotal: number) {}
 }
 
 export class OrderApproved implements IEvent {
@@ -31,7 +31,7 @@ export class OrderCompleted implements IEvent {
     constructor(public readonly aggregateId: string) {}
 }
 
-// Inbound Events
+// Integration Events
 export class PaymentReceived implements IEvent {
     public readonly aggregateId: string;
     public readonly type: string = "PaymentReceived";

@@ -13,6 +13,115 @@ export class OrdersEventSourcingSampleStack extends Stack {
     constructor(scope: Construct, id: string, props?: StackProps) {
         super(scope, id, props);
 
+        const eventStore = this.configureEventStore();
+        const queryStore = this.configureQueryStore();
+        const eventBus = this.configureEventBus();
+        const api = this.configureApi();
+
+        // Place Order
+        const placeOrderHandler = this.configureHttpLambda(
+            "PlaceOrderHandler",
+            "placeOrderHandler",
+            { api, path: "/orders", method: "POST" },
+            {
+                EVENT_STORE_NAME: eventStore.tableName,
+            }
+        );
+
+        eventStore.grantReadWriteData(placeOrderHandler);
+
+        // Order Placed
+        const orderPlacedHandler = this.configureEventLambda(
+            "OrderPlacedHandler",
+            "orderPlacedHandler",
+            { bus: eventBus, id: "OrderPlacedRule", detailType: ["OrderPlaced"] },
+            {
+                QUERY_STORE_NAME: queryStore.tableName,
+            }
+        );
+
+        queryStore.grantReadWriteData(orderPlacedHandler);
+
+        // Get Order
+        const getOrderHandler = this.configureHttpLambda(
+            "GetOrderHandler",
+            "getOrderHandler",
+            { api, path: "/orders/{orderId}", method: "GET" },
+            {
+                QUERY_STORE_NAME: queryStore.tableName,
+            }
+        );
+
+        queryStore.grantReadData(getOrderHandler);
+
+        // Add Line Item To Order
+        const addLineItemToOrderHandler = this.configureHttpLambda(
+            "AddLineItemToOrderHandler",
+            "addLineItemToOrderHandler",
+            { api, path: "/orders/{orderId}/items", method: "POST" },
+            {
+                EVENT_STORE_NAME: eventStore.tableName,
+            }
+        );
+
+        eventStore.grantReadWriteData(addLineItemToOrderHandler);
+
+        // Line Item Added To Order
+        const lineItemAddedToOrderHandler = this.configureEventLambda(
+            "LineItemAddedToOrderHandler",
+            "lineItemAddedToOrderHandler",
+            { bus: eventBus, id: "LineItemAddedToOrderRule", detailType: ["LineItemAddedToOrder"] },
+            {
+                QUERY_STORE_NAME: queryStore.tableName,
+            }
+        );
+
+        queryStore.grantReadWriteData(lineItemAddedToOrderHandler);
+
+        // Approve Order
+        const approveOrderHandler = this.configureHttpLambda(
+            "ApproveOrderHandler",
+            "approveOrderHandler",
+            { api, path: "/orders/{orderId}/approve", method: "POST" },
+            {
+                EVENT_STORE_NAME: eventStore.tableName,
+            }
+        );
+
+        eventStore.grantReadWriteData(approveOrderHandler);
+
+        // Order Approved
+        const orderApprovedHandler = this.configureEventLambda(
+            "OrderApprovedHandler",
+            "orderApprovedHandler",
+            { bus: eventBus, id: "OrderApprovedRule", detailType: ["OrderApproved"] },
+            {
+                QUERY_STORE_NAME: queryStore.tableName,
+            }
+        );
+
+        queryStore.grantReadWriteData(orderApprovedHandler);
+
+        // Payment Received
+        const paymentReceivedLambda = this.configureLambda("PaymentReceivedHandler", "paymentReceivedHandler", {
+            EVENT_STORE_NAME: eventStore.tableName,
+        });
+
+        eventStore.grantReadWriteData(paymentReceivedLambda);
+
+        paymentReceivedLambda.addFunctionUrl({ authType: FunctionUrlAuthType.NONE });
+
+        // Event Stream
+        const eventStreamHandler = this.configureLambda("EventStreamHandler", "eventStreamHandler", {
+            EVENT_BUS_NAME: eventBus.eventBusName,
+        });
+
+        eventStreamHandler.addEventSource(new DynamoEventSource(eventStore, { startingPosition: StartingPosition.TRIM_HORIZON, retryAttempts: 2 }));
+
+        eventBus.grantPutEventsTo(eventStreamHandler);
+    }
+
+    configureEventStore = (): Table => {
         const eventStore = new Table(this, "OrdersEventStore", {
             partitionKey: {
                 name: "id",
@@ -26,6 +135,10 @@ export class OrdersEventSourcingSampleStack extends Stack {
             stream: StreamViewType.NEW_IMAGE,
         });
 
+        return eventStore;
+    };
+
+    configureQueryStore = (): Table => {
         const queryStore = new Table(this, "OrdersQueryStore", {
             partitionKey: {
                 name: "orderId",
@@ -34,166 +147,77 @@ export class OrdersEventSourcingSampleStack extends Stack {
             removalPolicy: RemovalPolicy.DESTROY,
         });
 
+        return queryStore;
+    };
+
+    configureEventBus = (): EventBus => {
         const eventBus = new EventBus(this, "OrdersEvents");
+        return eventBus;
+    };
 
+    configureApi = (): RestApi => {
         const api = new RestApi(this, "OrdersApi");
+        return api;
+    };
 
-        // Place Order
-        const placeOrderHandler = new NodejsFunction(this, "PlaceOrderHandler", {
+    configureLambda = (
+        id: string,
+        handler: string,
+        environment?: {
+            [key: string]: string;
+        }
+    ): NodejsFunction => {
+        const lambda = new NodejsFunction(this, id, {
             runtime: Runtime.NODEJS_14_X,
-            handler: "placeOrderHandler",
+            handler: handler,
             entry: path.join(__dirname, "../src/handlers.ts"),
             tracing: Tracing.ACTIVE,
-            environment: {
-                EVENT_STORE_NAME: eventStore.tableName,
-            },
+            environment: environment,
         });
 
-        eventStore.grantReadWriteData(placeOrderHandler);
+        return lambda;
+    };
 
-        api.root.resourceForPath("/orders").addMethod("POST", new LambdaIntegration(placeOrderHandler));
+    configureHttpLambda = (
+        id: string,
+        handler: string,
+        httpOptions: {
+            api: RestApi;
+            path: string;
+            method: string;
+        },
+        environment?: {
+            [key: string]: string;
+        }
+    ) => {
+        const lambda = this.configureLambda(id, handler, environment);
+        httpOptions.api.root.resourceForPath(httpOptions.path).addMethod(httpOptions.method, new LambdaIntegration(lambda));
+        return lambda;
+    };
 
-        // Order Placed
-        const orderPlacedHandler = new NodejsFunction(this, "OrderPlacedHandler", {
-            runtime: Runtime.NODEJS_14_X,
-            handler: "orderPlacedHandler",
-            entry: path.join(__dirname, "../src/handlers.ts"),
-            tracing: Tracing.ACTIVE,
-            environment: {
-                QUERY_STORE_NAME: queryStore.tableName,
-            },
-        });
+    configureEventLambda = (
+        id: string,
+        handler: string,
+        eventRuleOptions: {
+            bus: EventBus;
+            id: string;
+            detailType: string[];
+        },
+        environment?: {
+            [key: string]: string;
+        }
+    ) => {
+        const lambda = this.configureLambda(id, handler, environment);
 
-        queryStore.grantReadWriteData(orderPlacedHandler);
-
-        new Rule(this, "OrderPlacedRule", {
-            eventBus: eventBus,
+        new Rule(this, eventRuleOptions.id, {
+            eventBus: eventRuleOptions.bus,
             eventPattern: {
                 source: ["Orders"],
-                detailType: ["OrderPlaced"],
+                detailType: eventRuleOptions.detailType,
             },
-            targets: [new LambdaFunction(orderPlacedHandler)],
+            targets: [new LambdaFunction(lambda)],
         });
 
-        // Get Order
-        const getOrderHandler = new NodejsFunction(this, "GetOrderHandler", {
-            runtime: Runtime.NODEJS_14_X,
-            handler: "getOrderHandler",
-            entry: path.join(__dirname, "../src/handlers.ts"),
-            tracing: Tracing.ACTIVE,
-            environment: {
-                QUERY_STORE_NAME: queryStore.tableName,
-            },
-        });
-
-        queryStore.grantReadData(getOrderHandler);
-
-        api.root.resourceForPath("/orders/{orderId}").addMethod("GET", new LambdaIntegration(getOrderHandler));
-
-        // Add Line Item To Order
-        const addOrderLineItemHandler = new NodejsFunction(this, "AddLineItemToOrderHandler", {
-            runtime: Runtime.NODEJS_14_X,
-            handler: "addLineItemToOrderHandler",
-            entry: path.join(__dirname, "../src/handlers.ts"),
-            tracing: Tracing.ACTIVE,
-            environment: {
-                EVENT_STORE_NAME: eventStore.tableName,
-            },
-        });
-
-        eventStore.grantReadWriteData(addOrderLineItemHandler);
-
-        api.root.resourceForPath("/orders/{orderId}/items").addMethod("POST", new LambdaIntegration(addOrderLineItemHandler));
-
-        // Line Item Added To Order
-        const orderLineItemAddedHandler = new NodejsFunction(this, "LineItemAddedToOrderHandler", {
-            runtime: Runtime.NODEJS_14_X,
-            handler: "lineItemAddedToOrderHandler",
-            entry: path.join(__dirname, "../src/handlers.ts"),
-            tracing: Tracing.ACTIVE,
-            environment: {
-                QUERY_STORE_NAME: queryStore.tableName,
-            },
-        });
-
-        queryStore.grantReadWriteData(orderLineItemAddedHandler);
-
-        new Rule(this, "LineItemAddedToOrderRule", {
-            eventBus: eventBus,
-            eventPattern: {
-                source: ["Orders"],
-                detailType: ["LineItemAddedToOrder"],
-            },
-            targets: [new LambdaFunction(orderLineItemAddedHandler)],
-        });
-
-        // Approve Order
-        const approveOrderHandler = new NodejsFunction(this, "ApproveOrderHandler", {
-            runtime: Runtime.NODEJS_14_X,
-            handler: "approveOrderHandler",
-            entry: path.join(__dirname, "../src/handlers.ts"),
-            tracing: Tracing.ACTIVE,
-            environment: {
-                EVENT_STORE_NAME: eventStore.tableName,
-            },
-        });
-
-        eventStore.grantReadWriteData(approveOrderHandler);
-
-        api.root.resourceForPath("/orders/{orderId}/approve").addMethod("POST", new LambdaIntegration(approveOrderHandler));
-
-        // Order Approved
-        const orderApprovedHandler = new NodejsFunction(this, "OrderApprovedHandler", {
-            runtime: Runtime.NODEJS_14_X,
-            handler: "orderApprovedHandler",
-            entry: path.join(__dirname, "../src/handlers.ts"),
-            tracing: Tracing.ACTIVE,
-            environment: {
-                QUERY_STORE_NAME: queryStore.tableName,
-            },
-        });
-
-        queryStore.grantReadWriteData(orderApprovedHandler);
-
-        new Rule(this, "OrderApprovedRule", {
-            eventBus: eventBus,
-            eventPattern: {
-                source: ["Orders"],
-                detailType: ["OrderApproved"],
-            },
-            targets: [new LambdaFunction(orderApprovedHandler)],
-        });
-
-        // Payment Received
-        const paymentReceivedHandler = new NodejsFunction(this, "PaymentReceivedHandler", {
-            runtime: Runtime.NODEJS_14_X,
-            handler: "paymentReceivedHandler",
-            entry: path.join(__dirname, "../src/handlers.ts"),
-            tracing: Tracing.ACTIVE,
-            environment: {
-                EVENT_STORE_NAME: eventStore.tableName,
-            },
-        });
-
-        paymentReceivedHandler.addFunctionUrl({
-            authType: FunctionUrlAuthType.NONE,
-        });
-
-        eventStore.grantReadWriteData(paymentReceivedHandler);
-
-        // Event Stream
-        const eventStreamHandler = new NodejsFunction(this, "EventStreamHandler", {
-            runtime: Runtime.NODEJS_14_X,
-            handler: "eventStreamHandler",
-            entry: path.join(__dirname, "../src/handlers.ts"),
-            tracing: Tracing.ACTIVE,
-            environment: {
-                EVENT_BUS_NAME: eventBus.eventBusName,
-            },
-        });
-
-        eventStreamHandler.addEventSource(new DynamoEventSource(eventStore, { startingPosition: StartingPosition.TRIM_HORIZON, retryAttempts: 2 }));
-
-        eventBus.grantPutEventsTo(eventStreamHandler);
-    }
+        return lambda;
+    };
 }

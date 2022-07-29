@@ -1,4 +1,4 @@
-import { calculateOrderTotal, Order, OrderLineItem, OrderStatus } from "../projections";
+import { Order, OrderLineItem, OrderStatus } from "../projections";
 import { ordersQueryStore } from "../persistance";
 import { EventBridgeHandler } from "aws-lambda";
 import { OrderPlaced } from "../events";
@@ -12,7 +12,7 @@ export const orderPlacedHandler: EventBridgeHandler<"OrderPlaced", OrderPlaced, 
         orderId: event.detail.aggregateId,
         orderStatus: OrderStatus.Placed,
         lineItems,
-        orderTotal: calculateOrderTotal(lineItems),
+        orderTotal: event.detail.orderTotal,
     };
 
     await ordersQueryStore.save(order);
