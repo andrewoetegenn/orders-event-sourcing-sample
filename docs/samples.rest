@@ -1,4 +1,4 @@
-@baseUrl = https://3vk5t9om0l.execute-api.eu-west-1.amazonaws.com/prod
+@baseUrl = https://fi6ewr8j31.execute-api.eu-west-1.amazonaws.com/prod
 
 # @name placeOrder
 POST {{baseUrl}}/orders HTTP/1.1
@@ -48,7 +48,7 @@ content-type: application/json
 ###
 
 # @name paymentReceived
-POST https://hmigg3okfdaosq2k7svbasymwu0uknut.lambda-url.eu-west-1.on.aws/ HTTP/1.1
+POST https://jccoz36ue6wu6w66njspavaoee0bqdlt.lambda-url.eu-west-1.on.aws/ HTTP/1.1
 content-type: application/json
 
 {

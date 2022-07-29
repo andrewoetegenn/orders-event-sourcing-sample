@@ -106,6 +106,10 @@ export class Order extends Aggregate {
     }
 
     private calculatePaymentsTotal(): number {
+        if (this.payments.length === 0) {
+            return 0;
+        }
+
         return round(this.payments.reduce((total, payment) => total + payment.amount, 0));
     }
 
