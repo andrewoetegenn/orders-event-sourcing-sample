@@ -12,6 +12,8 @@ export const orderPlacedHandler: EventBridgeHandler<"orderPlaced", OrderPlaced, 
         orderId: event.detail.aggregateId,
         orderStatus: OrderStatus.Placed,
         lineItems,
+        payments: [],
+        shipments: [],
         orderTotal: event.detail.orderTotal,
     };
 

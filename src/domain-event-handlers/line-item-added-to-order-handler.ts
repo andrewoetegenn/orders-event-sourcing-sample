@@ -10,11 +10,14 @@ export const lineItemAddedToOrderHandler: EventBridgeHandler<"lineItemAddedToOrd
     if (lineItemIndex !== -1) {
         order.lineItems[lineItemIndex].quantity += event.detail.lineItem.quantity;
     } else {
-        order.lineItems.push({
-            sku: event.detail.lineItem.sku,
-            quantity: event.detail.lineItem.quantity,
-            unitPrice: event.detail.lineItem.unitPrice,
-        });
+        order.lineItems = [
+            ...order.lineItems,
+            {
+                sku: event.detail.lineItem.sku,
+                quantity: event.detail.lineItem.quantity,
+                unitPrice: event.detail.lineItem.unitPrice,
+            },
+        ];
     }
 
     order.orderTotal = event.detail.orderTotal;
