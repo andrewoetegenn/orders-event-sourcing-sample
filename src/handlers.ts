@@ -19,25 +19,44 @@ const eventStreamHandler: DynamoDBStreamHandler = async (event) => {
     }
 };
 
+// Command Handlers
 import { addLineItemToOrderHandler } from "./command-handlers/add-line-item-to-order-handler";
 import { approveOrderHandler } from "./command-handlers/approve-order-handler";
 import { placeOrderHandler } from "./command-handlers/place-order-handler";
 
-import { lineItemAddedToOrderHandler } from "./event-handlers/line-item-added-to-order-handler";
-import { paymentReceivedHandler } from "./event-handlers/payment-received-handler";
-import { orderApprovedHandler } from "./event-handlers/order-approved-handler";
-import { orderPlacedHandler } from "./event-handlers/order-placed-handler";
+// Domain Event Handlers
+import { lineItemAddedToOrderHandler } from "./domain-event-handlers/line-item-added-to-order-handler";
+import { orderPaymentReceivedHandler } from "./domain-event-handlers/orders-payment-received-handler";
+import { orderDispatchedHandler } from "./domain-event-handlers/order-dispatched-handler";
+import { orderCompletedHandler } from "./domain-event-handlers/order-completed-handler";
+import { orderDeliveredHandler } from "./domain-event-handlers/order-delivered-handler";
+import { orderApprovedHandler } from "./domain-event-handlers/order-approved-handler";
+import { orderPlacedHandler } from "./domain-event-handlers/order-placed-handler";
+import { orderPaidHandler } from "./domain-event-handlers/order-paid-handler";
 
-import { getOrderHandler } from "./query-handlers/get-order-handler";
+// Integration Event Handlers
+import { shipmentDispatchedHandler } from "./integration-event-handlers/shipment-dispatched-handler";
+import { shipmentDeliveredHandler } from "./integration-event-handlers/shipment-delivered-handler";
+import { paymentReceivedHandler } from "./integration-event-handlers/payment-received-handler";
+
+// Query Handlers
+import { getOrderDetailHandler } from "./query-handlers/get-order-detail-handler";
 
 export {
     addLineItemToOrderHandler,
     approveOrderHandler,
     placeOrderHandler,
     lineItemAddedToOrderHandler,
+    orderPaymentReceivedHandler,
+    orderDispatchedHandler,
+    orderCompletedHandler,
+    orderDeliveredHandler,
+    orderPaidHandler,
+    shipmentDispatchedHandler,
+    shipmentDeliveredHandler,
     paymentReceivedHandler,
     orderApprovedHandler,
     orderPlacedHandler,
-    getOrderHandler,
+    getOrderDetailHandler,
     eventStreamHandler,
 };

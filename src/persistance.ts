@@ -1,5 +1,5 @@
 import { PutCommand, PutCommandInput, QueryCommand, QueryCommandInput } from "@aws-sdk/lib-dynamodb";
-import { Order as OrderProjection } from "./projections";
+import { OrderDetail as OrderProjection } from "./projections";
 import { OrderNotFoundError } from "./errors";
 import { dynamoDBClient } from "./services";
 import { IEvent } from "./events";

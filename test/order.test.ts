@@ -13,8 +13,8 @@ describe("order journeys", () => {
         await addLineItemToOrder();
         await approveOrder();
         await publishPaymentReceived();
-        // Shipment dispatched
-        // Shipment delivered
+        await publishShipmentDispatched();
+        await publishShipmentDelivered();
 
         console.log("Order ID: ", orderId);
     });
@@ -56,15 +56,29 @@ describe("order journeys", () => {
     const publishPaymentReceived = async () => {
         await publishEvent("payments", "paymentReceived", {
             aggregateId: "12345",
-            type: "PaymentReceived",
+            type: "paymentReceived",
             orderId: orderId,
             amount: 33.84,
         });
     };
 
-    const publishShipmentDispatched = async () => {};
+    const publishShipmentDispatched = async () => {
+        await publishEvent("shipments", "shipmentDispatched", {
+            aggregateId: "12345",
+            type: "shipmentDispatched",
+            orderId: orderId,
+            carrier: "FedEx",
+            carrierService: "FedEx Next Day",
+        });
+    };
 
-    const publishShipmentDelivered = async () => {};
+    const publishShipmentDelivered = async () => {
+        await publishEvent("shipments", "shipmentDelivered", {
+            aggregateId: "12345",
+            type: "shipmentDelivered",
+            orderId: orderId,
+        });
+    };
 
     const publishEvent = async (source: string, detailType: string, event) => {
         const params = {

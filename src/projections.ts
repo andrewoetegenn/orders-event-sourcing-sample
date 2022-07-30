@@ -1,17 +1,28 @@
-export interface Order {
+export interface OrderDetail {
     orderId: string;
     orderStatus: OrderStatus;
-    lineItems: OrderLineItem[];
+    lineItems: {
+        sku: string;
+        quantity: number;
+        unitPrice: number;
+    }[];
+    payments: {
+        paymentId: string;
+        amount: number;
+    }[];
+    shipments: {
+        shipmentId: string;
+        carrier: string;
+        carrierService: string;
+    }[];
     orderTotal: number;
-}
-
-export interface OrderLineItem {
-    sku: string;
-    quantity: number;
-    unitPrice: number;
 }
 
 export enum OrderStatus {
     Placed = "Placed",
     Approved = "Approved",
+    Paid = "Paid",
+    Dispatched = "Dispatched",
+    Delivered = "Delivered",
+    Completed = "Completed",
 }

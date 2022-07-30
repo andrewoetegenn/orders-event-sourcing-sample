@@ -24,4 +24,4 @@ const handler = async (event: APIGatewayProxyEventV2): Promise<APIGatewayProxySt
     };
 };
 
-export const getOrderHandler: (event: APIGatewayProxyEventV2) => Promise<APIGatewayProxyStructuredResultV2> = withHttpErrorHandling(handler);
+export const getOrderDetailHandler: (event: APIGatewayProxyEventV2) => Promise<APIGatewayProxyStructuredResultV2> = withHttpErrorHandling(handler);

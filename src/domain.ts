@@ -1,4 +1,4 @@
-import { IEvent, OrderPlaced, LineItemAddedToOrder, OrderApproved, OrderPaymentReceived, OrderCompleted } from "./events";
+import { IEvent, OrderPlaced, LineItemAddedToOrder, OrderApproved, OrderPaymentReceived, OrderCompleted, OrderPaid, OrderDispatched, OrderDelivered } from "./events";
 import { InvalidOrderStatusError, InvalidPaymentError } from "./errors";
 import { v4 as uuid } from "uuid";
 import { round } from "./utils";
@@ -93,12 +93,45 @@ export class Order extends Aggregate {
         this.raiseEvent(new OrderPaymentReceived(this.aggregateId, paymentId, amount));
 
         if (this.calculatePaymentsTotal() === this.orderTotal) {
-            this.raiseEvent(new OrderCompleted(this.aggregateId));
+            this.raiseEvent(new OrderPaid(this.aggregateId));
         }
     }
 
     private applyOrderPaymentReceived(event: OrderPaymentReceived): void {
         this.payments.push(new Payment(event.paymentId, event.amount));
+    }
+
+    private applyOrderPaid(event: OrderPaid): void {
+        if (this.orderStatus !== OrderStatus.Approved) {
+            throw new InvalidOrderStatusError();
+        }
+
+        this.orderStatus = OrderStatus.Paid;
+    }
+
+    public dispatch(shipmentId: string, carrier: string, carrierService: string): void {
+        if (this.orderStatus !== OrderStatus.Paid) {
+            throw new InvalidOrderStatusError();
+        }
+
+        this.raiseEvent(new OrderDispatched(this.aggregateId, shipmentId, carrier, carrierService));
+    }
+
+    private applyOrderDispatched(event: OrderDispatched): void {
+        this.orderStatus = OrderStatus.Dispatched;
+    }
+
+    public deliver(shipmentId: string): void {
+        if (this.orderStatus !== OrderStatus.Dispatched) {
+            throw new InvalidOrderStatusError();
+        }
+
+        this.raiseEvent(new OrderDelivered(this.aggregateId, shipmentId));
+        this.raiseEvent(new OrderCompleted(this.aggregateId));
+    }
+
+    private applyOrderDelivered(event: OrderDelivered): void {
+        this.orderStatus = OrderStatus.Delivered;
     }
 
     private applyOrderCompleted(event: OrderCompleted): void {
@@ -127,6 +160,15 @@ export class Order extends Aggregate {
             case "orderPaymentReceived":
                 this.applyOrderPaymentReceived(event as OrderPaymentReceived);
                 break;
+            case "orderPaid":
+                this.applyOrderPaid(event as OrderPaid);
+                break;
+            case "orderDispatched":
+                this.applyOrderDispatched(event as OrderDispatched);
+                break;
+            case "orderDelivered":
+                this.applyOrderDelivered(event as OrderDelivered);
+                break;
             case "orderCompleted":
                 this.applyOrderCompleted(event as OrderCompleted);
                 break;
@@ -151,6 +193,9 @@ export class OrderLineItem {
 export enum OrderStatus {
     Placed = "Placed",
     Approved = "Approved",
+    Paid = "Paid",
+    Dispatched = "Dispatched",
+    Delivered = "Delivered",
     Completed = "Completed",
 }
 
