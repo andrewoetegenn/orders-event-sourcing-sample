@@ -1,6 +1,8 @@
 # Orders Event Sourcing Sample
 
-A fictional orders sysytem demonstrating CQRS and Event Sourcing patterns.
+A fictional orders system demonstrating CQRS and Event Sourcing patterns.
+
+This example is to demonstrate the patterns and less about the actual code implementation. i.e., The code is not suitable for production, it's **not** intended to be an example of good coding practices or. Implementation in a real world scenario would require more consideration in many areas.
 
 ![Event Sourcing Diagram](./images/event-sourcing-diagram.png)
 
