@@ -1,7 +1,7 @@
 import { EventBridgeClient, PutEventsCommand } from "@aws-sdk/client-eventbridge";
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 
-const baseUrl = "https://ozsnw4zbm2.execute-api.eu-west-1.amazonaws.com/prod";
+const baseUrl = "https://i7fs7084ze.execute-api.eu-west-1.amazonaws.com/prod";
 const eventBusName = "OrdersEventSourcingSampleStackOrdersEvents24AB1CCC";
 const eventBridge = new EventBridgeClient({});
 
@@ -10,14 +10,37 @@ describe("order journeys", () => {
 
     it("should fulfil order", async () => {
         await placeOrder();
-        await addLineItemToOrder();
-        await approveOrder();
-        await publishPaymentReceived();
-        await publishShipmentDispatched();
-        await publishShipmentDelivered();
 
         console.log("Order ID: ", orderId);
-    });
+
+        await waitForOrderStatus("Placed");
+
+        console.log("Place Order");
+
+        await addLineItemToOrder();
+
+        console.log("Add Line To Order");
+
+        await approveOrder();
+        await waitForOrderStatus("Approved");
+
+        console.log("Order Approved");
+
+        await publishPaymentReceived();
+        await waitForOrderStatus("Paid");
+
+        console.log("Order Paid");
+
+        await publishShipmentDispatched();
+        await waitForOrderStatus("Dispatched");
+
+        console.log("Order Dispatched");
+
+        await publishShipmentDelivered();
+        await waitForOrderStatus("Completed");
+
+        console.log("Order Completed");
+    }, 30_000);
 
     const placeOrder = async () => {
         const request = {
@@ -93,4 +116,39 @@ describe("order journeys", () => {
         };
         await eventBridge.send(new PutEventsCommand(params));
     };
+
+    const waitForOrderStatus = async (status: string) => {
+        await wait(async () => {
+            try {
+                const response = await axios.get(`${baseUrl}/orders/${orderId}`);
+                return response.data.orderStatus === status;
+            } catch (error) {
+                const axiosError = error as AxiosError;
+
+                if (axiosError.response?.status === 404) {
+                    return false;
+                }
+
+                throw error;
+            }
+        });
+    };
+
+    const wait = async (action: () => Promise<boolean>, retryCount = 10, sleepTimeInMilliseconds = 1000) => {
+        let i = 0;
+
+        for (i = 0; i < retryCount; i++) {
+            if (await action()) {
+                break;
+            }
+
+            await sleep(sleepTimeInMilliseconds);
+        }
+
+        if (i === retryCount) {
+            throw new Error("Retries exhausted, condition not met.");
+        }
+    };
+
+    const sleep = (sleepTimeInMilliseconds: number) => new Promise((resolve) => setTimeout(resolve, sleepTimeInMilliseconds));
 });
