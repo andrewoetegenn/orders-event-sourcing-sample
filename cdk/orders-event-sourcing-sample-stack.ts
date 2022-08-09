@@ -73,7 +73,9 @@ export class OrdersEventSourcingSampleStack extends Stack {
     };
 
     configureApi = (): void => {
-        const api = new RestApi(this, "OrdersApi");
+        const api = new RestApi(this, "OrdersEventSourcingSampleApi", {
+            restApiName: "orders-event-sourcing-sample-api",
+        });
         this.api = api;
     };
 
