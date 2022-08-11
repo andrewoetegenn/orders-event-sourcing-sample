@@ -40,6 +40,7 @@ export class OrdersEventSourcingSampleStack extends Stack {
 
     configureEventStore = (): void => {
         const eventStore = new Table(this, "OrdersEventStore", {
+            tableName: "orders-event-sourcing-sample-event-store",
             partitionKey: {
                 name: "id",
                 type: AttributeType.STRING,
@@ -57,6 +58,7 @@ export class OrdersEventSourcingSampleStack extends Stack {
 
     configureQueryStore = (): void => {
         const queryStore = new Table(this, "OrdersQueryStore", {
+            tableName: "orders-event-sourcing-sample-query-store",
             partitionKey: {
                 name: "orderId",
                 type: AttributeType.STRING,
